@@ -7,8 +7,7 @@ on:
   workflow_dispatch: # 允许在 GitHub 网页上手动触发
 
 env:
-  ImageOS: ubuntu22
-
+  IMAGEOS: ubuntu22
 
 permissions:
   contents: write # 允许 Action 提交代码到仓库
@@ -16,6 +15,8 @@ permissions:
 jobs:
   build:
     runs-on: self-hosted
+    #container: 
+      #image: python:3.11-slim
 
     steps:
     - name: Checkout repository
