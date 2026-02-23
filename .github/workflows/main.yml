@@ -1,0 +1,45 @@
+name: Update iptv
+
+on:
+  schedule:
+    # 每天 UTC 时间 00:00 执行（北京时间早上 8:00）
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许在 GitHub 网页上手动触发
+
+permissions:
+  contents: write # 允许 Action 提交代码到仓库
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # 推荐使用 3.11 以获取更佳的 asyncio 性能
+
+    - name: Increase open files limit
+      run: |
+        ulimit -n 65536
+        echo "Default open files limit increased for high-concurrency connections."
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install aiohttp uvloop
+
+    - name: Run M3U Check Script
+      run: python main.py
+
+    - name: Commit and Push M3U file
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add itvlist.m3u
+        # 如果文件没有变化，则不报错退出
+        git commit -m "Update iptv list[skip ci]" || exit 0
+        git push
