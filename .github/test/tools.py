@@ -27,9 +27,8 @@ from mysql.connector import pooling
 from requests.exceptions import RequestException
 socket.setdefaulttimeout(5.0)
 
-class Tools (object) :
-
-    def __init__ (self) :
+class Tools(object):
+    def __init__(self):
         pass
     
     # 校验是否为ip地址
@@ -80,14 +79,15 @@ class Tools (object) :
         # 发起HTTP请求获取网页内容
         try:
             headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
-            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6', 'Accept-Encoding': 'gzip, deflate',
-            'Accept': 'ext/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed'
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+                "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+                "Accept-Encoding": "gzip, deflate",
+                "Accept": "ext/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed",
             }
             
             response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
             # 检查响应状态码
-            if response.status_code == 200: 
+            if response.status_code == 200:
                 return response
             else:
                 return None
@@ -105,9 +105,8 @@ class Tools (object) :
         try:
             response = requests.get(ip_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
             # 检查响应状态码
-            if response.status_code == 200: 
-                #设置编码格式
-                response.encoding = 'utf-8'
+            if response.status_code == 200:
+                response.encoding = "utf-8"
                 # 处理响应
                 response.raise_for_status()
                 # 检查请求是否成功
@@ -267,7 +266,7 @@ class Tools (object) :
         for category_info in category_list:
             # print(f"匹配频道类型 {category_info}，[{str_name}]")
             if category_type is not None:
-                break;
+                break
             category_psw = category_info[0]
             category_name = category_info[1]
             name_values = category_psw.split(',')

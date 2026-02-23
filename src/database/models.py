@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
+
 @dataclass
 class Channel:
     name: str
@@ -14,12 +15,15 @@ class Channel:
     sign: int = 0
     time: Optional[datetime] = None
     id: Optional[int] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data['time'] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            data["time"] = (
+                self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            )
         return data
+
 
 @dataclass
 class Hotel:
@@ -30,12 +34,15 @@ class Hotel:
     status: int = 0
     time: Optional[datetime] = None
     id: Optional[int] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data['time'] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            data["time"] = (
+                self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            )
         return data
+
 
 @dataclass
 class Multicast:
@@ -49,12 +56,15 @@ class Multicast:
     status: int = 0
     time: Optional[datetime] = None
     id: Optional[int] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data['time'] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            data["time"] = (
+                self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            )
         return data
+
 
 @dataclass
 class Category:
@@ -63,9 +73,10 @@ class Category:
     type: str
     enable: int = 1
     id: Optional[int] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
 
 @dataclass
 class UDPxy:
@@ -78,17 +89,20 @@ class UDPxy:
     actv: int = 0
     status: int = 0
     time: Optional[datetime] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data['time'] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            data["time"] = (
+                self.time.isoformat() if isinstance(self.time, datetime) else self.time
+            )
         return data
+
 
 class ChannelModel:
     def __init__(self, db_manager):
         self.db = db_manager
-    
+
     def insert(self, channel: Channel) -> int:
         query = """
             INSERT INTO iptv_channels 
@@ -98,80 +112,96 @@ class ChannelModel:
         try:
             self.db.execute_query(
                 query,
-                (channel.name, channel.url, channel.type, channel.width,
-                 channel.height, channel.frame, channel.speed, channel.sign, channel.time),
-                fetch=False
+                (
+                    channel.name,
+                    channel.url,
+                    channel.type,
+                    channel.width,
+                    channel.height,
+                    channel.frame,
+                    channel.speed,
+                    channel.sign,
+                    channel.time,
+                ),
+                fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception as e:
             return 0
-    
+
     def insert_many(self, channels: List[Channel]) -> int:
         if not channels:
             return 0
-        
+
         query = """
             INSERT OR IGNORE INTO iptv_channels 
             (name, url, type, width, height, frame, speed, sign, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         params = [
-            (c.name, c.url, c.type, c.width, c.height, c.frame,
-             c.speed, c.sign, c.time) for c in channels
+            (c.name, c.url, c.type, c.width, c.height, c.frame, c.speed, c.sign, c.time)
+            for c in channels
         ]
         return self.db.execute_many(query, params)
-    
+
     def update(self, channel_id: int, **kwargs) -> bool:
         if not kwargs:
             return False
-        
+
         set_clause = ", ".join([f"{k} = ?" for k in kwargs.keys()])
         query = f"UPDATE iptv_channels SET {set_clause} WHERE id = ?"
         params = list(kwargs.values()) + [channel_id]
-        
+
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
         except Exception as e:
             return False
-    
+
     def update_many(self, updates: List[Dict[str, Any]]) -> int:
         if not updates:
             return 0
-        
+
         query = """
             UPDATE iptv_channels 
             SET speed = ?, width = ?, height = ?, frame = ?, time = ?
             WHERE id = ?
         """
         params = [
-            (u.get('speed', 0), u.get('width'), u.get('height'),
-             u.get('frame'), u.get('time'), u['id']) for u in updates
+            (
+                u.get("speed", 0),
+                u.get("width"),
+                u.get("height"),
+                u.get("frame"),
+                u.get("time"),
+                u["id"],
+            )
+            for u in updates
         ]
         return self.db.execute_many(query, params)
-    
+
     def get_by_id(self, channel_id: int) -> Optional[Channel]:
         query = "SELECT * FROM iptv_channels WHERE id = ?"
         rows = self.db.execute_query(query, (channel_id,))
         if rows:
             return self._row_to_channel(rows[0])
         return None
-    
+
     def get_by_url(self, url: str) -> Optional[Channel]:
         query = "SELECT * FROM iptv_channels WHERE url = ?"
         rows = self.db.execute_query(query, (url,))
         if rows:
             return self._row_to_channel(rows[0])
         return None
-    
+
     def get_all(self, limit: int = None, offset: int = 0) -> List[Channel]:
         query = "SELECT * FROM iptv_channels ORDER BY id DESC"
         if limit:
             query += f" LIMIT {limit} OFFSET {offset}"
-        
+
         rows = self.db.execute_query(query)
         return [self._row_to_channel(row) for row in rows]
-    
+
     def get_by_type(self, channel_type: str, sign: int = None) -> List[Channel]:
         if sign is not None:
             query = "SELECT * FROM iptv_channels WHERE type = ? AND sign = ?"
@@ -179,9 +209,9 @@ class ChannelModel:
         else:
             query = "SELECT * FROM iptv_channels WHERE type = ?"
             rows = self.db.execute_query(query, (channel_type,))
-        
+
         return [self._row_to_channel(row) for row in rows]
-    
+
     def delete_by_id(self, channel_id: int) -> bool:
         query = "DELETE FROM iptv_channels WHERE id = ?"
         try:
@@ -189,7 +219,7 @@ class ChannelModel:
             return True
         except Exception:
             return False
-    
+
     def delete_by_sign(self, sign: int) -> int:
         query = "DELETE FROM iptv_channels WHERE sign = ?"
         try:
@@ -197,30 +227,31 @@ class ChannelModel:
             return self.db.execute_query("SELECT changes()")[0][0]
         except Exception:
             return 0
-    
+
     def count(self) -> int:
         query = "SELECT COUNT(*) FROM iptv_channels"
         rows = self.db.execute_query(query)
         return rows[0][0] if rows else 0
-    
+
     def _row_to_channel(self, row) -> Channel:
         return Channel(
-            id=row['id'],
-            name=row['name'],
-            url=row['url'],
-            type=row['type'],
-            width=row['width'],
-            height=row['height'],
-            frame=row['frame'],
-            speed=row['speed'],
-            sign=row['sign'],
-            time=datetime.fromisoformat(row['time']) if row['time'] else None
+            id=row["id"],
+            name=row["name"],
+            url=row["url"],
+            type=row["type"],
+            width=row["width"],
+            height=row["height"],
+            frame=row["frame"],
+            speed=row["speed"],
+            sign=row["sign"],
+            time=datetime.fromisoformat(row["time"]) if row["time"] else None,
         )
+
 
 class HotelModel:
     def __init__(self, db_manager):
         self.db = db_manager
-    
+
     def insert(self, hotel: Hotel) -> int:
         query = """
             INSERT OR IGNORE INTO iptv_hotels 
@@ -230,58 +261,63 @@ class HotelModel:
         try:
             self.db.execute_query(
                 query,
-                (hotel.ip, hotel.port, hotel.name, hotel.count, hotel.status, hotel.time),
-                fetch=False
+                (
+                    hotel.ip,
+                    hotel.port,
+                    hotel.name,
+                    hotel.count,
+                    hotel.status,
+                    hotel.time,
+                ),
+                fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception:
             return 0
-    
+
     def insert_many(self, hotels: List[Hotel]) -> int:
         if not hotels:
             return 0
-        
+
         query = """
             INSERT OR IGNORE INTO iptv_hotels 
             (ip, port, name, count, status, time)
             VALUES (?, ?, ?, ?, ?, ?)
         """
-        params = [
-            (h.ip, h.port, h.name, h.count, h.status, h.time) for h in hotels
-        ]
+        params = [(h.ip, h.port, h.name, h.count, h.status, h.time) for h in hotels]
         return self.db.execute_many(query, params)
-    
+
     def update(self, ip: str, **kwargs) -> bool:
         if not kwargs:
             return False
-        
+
         set_clause = ", ".join([f"{k} = ?" for k in kwargs.keys()])
         query = f"UPDATE iptv_hotels SET {set_clause} WHERE ip = ?"
         params = list(kwargs.values()) + [ip]
-        
+
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
         except Exception:
             return False
-    
+
     def get_by_ip(self, ip: str) -> Optional[Hotel]:
         query = "SELECT * FROM iptv_hotels WHERE ip = ?"
         rows = self.db.execute_query(query, (ip,))
         if rows:
             return self._row_to_hotel(rows[0])
         return None
-    
+
     def get_by_status(self, status: int) -> List[Hotel]:
         query = "SELECT * FROM iptv_hotels WHERE status = ?"
         rows = self.db.execute_query(query, (status,))
         return [self._row_to_hotel(row) for row in rows]
-    
+
     def get_all(self) -> List[Hotel]:
         query = "SELECT * FROM iptv_hotels ORDER BY id DESC"
         rows = self.db.execute_query(query)
         return [self._row_to_hotel(row) for row in rows]
-    
+
     def delete_by_ip(self, ip: str) -> bool:
         query = "DELETE FROM iptv_hotels WHERE ip = ?"
         try:
@@ -289,27 +325,28 @@ class HotelModel:
             return True
         except Exception:
             return False
-    
+
     def count(self) -> int:
         query = "SELECT COUNT(*) FROM iptv_hotels"
         rows = self.db.execute_query(query)
         return rows[0][0] if rows else 0
-    
+
     def _row_to_hotel(self, row) -> Hotel:
         return Hotel(
-            id=row['id'],
-            ip=row['ip'],
-            port=row['port'],
-            name=row['name'],
-            count=row['count'],
-            status=row['status'],
-            time=datetime.fromisoformat(row['time']) if row['time'] else None
+            id=row["id"],
+            ip=row["ip"],
+            port=row["port"],
+            name=row["name"],
+            count=row["count"],
+            status=row["status"],
+            time=datetime.fromisoformat(row["time"]) if row["time"] else None,
         )
+
 
 class MulticastModel:
     def __init__(self, db_manager):
         self.db = db_manager
-    
+
     def insert(self, multicast: Multicast) -> int:
         query = """
             INSERT INTO iptv_multicast 
@@ -319,63 +356,73 @@ class MulticastModel:
         try:
             self.db.execute_query(
                 query,
-                (multicast.country, multicast.province, multicast.isp, multicast.path,
-                 multicast.city, multicast.udpxy, multicast.lines, multicast.status, multicast.time),
-                fetch=False
+                (
+                    multicast.country,
+                    multicast.province,
+                    multicast.isp,
+                    multicast.path,
+                    multicast.city,
+                    multicast.udpxy,
+                    multicast.lines,
+                    multicast.status,
+                    multicast.time,
+                ),
+                fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception:
             return 0
-    
+
     def update(self, multicast_id: int, **kwargs) -> bool:
         if not kwargs:
             return False
-        
+
         set_clause = ", ".join([f"{k} = ?" for k in kwargs.keys()])
         query = f"UPDATE iptv_multicast SET {set_clause} WHERE id = ?"
         params = list(kwargs.values()) + [multicast_id]
-        
+
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
         except Exception:
             return False
-    
+
     def get_by_id(self, multicast_id: int) -> Optional[Multicast]:
         query = "SELECT * FROM iptv_multicast WHERE id = ?"
         rows = self.db.execute_query(query, (multicast_id,))
         if rows:
             return self._row_to_multicast(rows[0])
         return None
-    
+
     def get_all(self) -> List[Multicast]:
         query = "SELECT * FROM iptv_multicast ORDER BY id DESC"
         rows = self.db.execute_query(query)
         return [self._row_to_multicast(row) for row in rows]
-    
+
     def count(self) -> int:
         query = "SELECT COUNT(*) FROM iptv_multicast"
         rows = self.db.execute_query(query)
         return rows[0][0] if rows else 0
-    
+
     def _row_to_multicast(self, row) -> Multicast:
         return Multicast(
-            id=row['id'],
-            country=row['country'],
-            province=row['province'],
-            isp=row['isp'],
-            path=row['path'],
-            city=row['city'],
-            udpxy=row['udpxy'],
-            lines=row['lines'],
-            status=row['status'],
-            time=datetime.fromisoformat(row['time']) if row['time'] else None
+            id=row["id"],
+            country=row["country"],
+            province=row["province"],
+            isp=row["isp"],
+            path=row["path"],
+            city=row["city"],
+            udpxy=row["udpxy"],
+            lines=row["lines"],
+            status=row["status"],
+            time=datetime.fromisoformat(row["time"]) if row["time"] else None,
         )
+
 
 class CategoryModel:
     def __init__(self, db_manager):
         self.db = db_manager
-    
+
     def insert(self, category: Category) -> int:
         query = """
             INSERT INTO iptv_category (name, psw, type, enable)
@@ -385,40 +432,41 @@ class CategoryModel:
             self.db.execute_query(
                 query,
                 (category.name, category.psw, category.type, category.enable),
-                fetch=False
+                fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception:
             return 0
-    
+
     def get_enabled(self) -> List[Category]:
         query = "SELECT * FROM iptv_category WHERE enable = 1 ORDER BY id DESC"
         rows = self.db.execute_query(query)
         return [self._row_to_category(row) for row in rows]
-    
+
     def get_by_type(self, category_type: str) -> List[Category]:
         query = "SELECT * FROM iptv_category WHERE type = ? AND enable = 1"
         rows = self.db.execute_query(query, (category_type,))
         return [self._row_to_category(row) for row in rows]
-    
+
     def get_all(self) -> List[Category]:
         query = "SELECT * FROM iptv_category ORDER BY id DESC"
         rows = self.db.execute_query(query)
         return [self._row_to_category(row) for row in rows]
-    
+
     def _row_to_category(self, row) -> Category:
         return Category(
-            id=row['id'],
-            name=row['name'],
-            psw=row['psw'],
-            type=row['type'],
-            enable=row['enable']
+            id=row["id"],
+            name=row["name"],
+            psw=row["psw"],
+            type=row["type"],
+            enable=row["enable"],
         )
+
 
 class UDPxyModel:
     def __init__(self, db_manager):
         self.db = db_manager
-    
+
     def insert(self, udpxy: UDPxy) -> bool:
         query = """
             INSERT OR IGNORE INTO iptv_udpxy 
@@ -428,43 +476,52 @@ class UDPxyModel:
         try:
             self.db.execute_query(
                 query,
-                (udpxy.id, udpxy.mid, udpxy.mcast, udpxy.city,
-                 udpxy.ip, udpxy.port, udpxy.actv, udpxy.status, udpxy.time),
-                fetch=False
+                (
+                    udpxy.id,
+                    udpxy.mid,
+                    udpxy.mcast,
+                    udpxy.city,
+                    udpxy.ip,
+                    udpxy.port,
+                    udpxy.actv,
+                    udpxy.status,
+                    udpxy.time,
+                ),
+                fetch=False,
             )
             return True
         except Exception:
             return False
-    
+
     def insert_many(self, udpxy_list: List[UDPxy]) -> int:
         if not udpxy_list:
             return 0
-        
+
         query = """
             INSERT OR IGNORE INTO iptv_udpxy 
             (id, mid, mcast, city, ip, port, actv, status, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         params = [
-            (u.id, u.mid, u.mcast, u.city, u.ip, u.port,
-             u.actv, u.status, u.time) for u in udpxy_list
+            (u.id, u.mid, u.mcast, u.city, u.ip, u.port, u.actv, u.status, u.time)
+            for u in udpxy_list
         ]
         return self.db.execute_many(query, params)
-    
+
     def update(self, udpxy_id: str, **kwargs) -> bool:
         if not kwargs:
             return False
-        
+
         set_clause = ", ".join([f"{k} = ?" for k in kwargs.keys()])
         query = f"UPDATE iptv_udpxy SET {set_clause} WHERE id = ?"
         params = list(kwargs.values()) + [udpxy_id]
-        
+
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
         except Exception:
             return False
-    
+
     def get_by_mid(self, mid: int, status: int = None) -> List[UDPxy]:
         if status is not None:
             query = "SELECT * FROM iptv_udpxy WHERE mid = ? AND status = ?"
@@ -472,9 +529,9 @@ class UDPxyModel:
         else:
             query = "SELECT * FROM iptv_udpxy WHERE mid = ?"
             rows = self.db.execute_query(query, (mid,))
-        
+
         return [self._row_to_udpxy(row) for row in rows]
-    
+
     def delete_by_status(self, mid: int, status: int) -> int:
         query = "DELETE FROM iptv_udpxy WHERE mid = ? AND status = ?"
         try:
@@ -482,7 +539,7 @@ class UDPxyModel:
             return self.db.execute_query("SELECT changes()")[0][0]
         except Exception:
             return 0
-    
+
     def count(self, mid: int = None, status: int = None) -> int:
         if mid is not None and status is not None:
             query = "SELECT COUNT(*) FROM iptv_udpxy WHERE mid = ? AND status = ?"
@@ -493,18 +550,18 @@ class UDPxyModel:
         else:
             query = "SELECT COUNT(*) FROM iptv_udpxy"
             rows = self.db.execute_query(query)
-        
+
         return rows[0][0] if rows else 0
-    
+
     def _row_to_udpxy(self, row) -> UDPxy:
         return UDPxy(
-            id=row['id'],
-            mid=row['mid'],
-            mcast=row['mcast'],
-            city=row['city'],
-            ip=row['ip'],
-            port=row['port'],
-            actv=row['actv'],
-            status=row['status'],
-            time=datetime.fromisoformat(row['time']) if row['time'] else None
+            id=row["id"],
+            mid=row["mid"],
+            mcast=row["mcast"],
+            city=row["city"],
+            ip=row["ip"],
+            port=row["port"],
+            actv=row["actv"],
+            status=row["status"],
+            time=datetime.fromisoformat(row["time"]) if row["time"] else None,
         )

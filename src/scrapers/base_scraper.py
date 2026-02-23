@@ -9,49 +9,54 @@ import time
 
 from ..utils import get_logger
 
-logger = get_logger('base_scraper')
+logger = get_logger("base_scraper")
+
 
 class BaseScraper(ABC):
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        self.timeout = self.config.get('timeout', 15)
-        self.max_retries = self.config.get('max_retries', 3)
-        self.retry_delay = self.config.get('retry_delay', 1.0)
-        self.concurrency_limit = self.config.get('concurrency_limit', 100)
-        
+        self.timeout = self.config.get("timeout", 15)
+        self.max_retries = self.config.get("max_retries", 3)
+        self.retry_delay = self.config.get("retry_delay", 1.0)
+        self.concurrency_limit = self.config.get("concurrency_limit", 100)
+
         self.session = None
         self.executor = None
         self.results_queue = Queue()
-    
+
     async def __aenter__(self):
         self.session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=self.timeout),
-            connector=aiohttp.TCPConnector(limit=self.concurrency_limit)
+            connector=aiohttp.TCPConnector(limit=self.concurrency_limit),
         )
         self.executor = ThreadPoolExecutor(max_workers=self.concurrency_limit)
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.session:
             await self.session.close()
         if self.executor:
             self.executor.shutdown(wait=True)
-    
-    async def fetch_url(self, url: str, method: str = 'GET', **kwargs) -> Optional[aiohttp.ClientResponse]:
+
+    async def fetch_url(
+        self, url: str, method: str = "GET", **kwargs
+    ) -> Optional[aiohttp.ClientResponse]:
         for attempt in range(self.max_retries):
             try:
                 async with self.session.request(method, url, **kwargs) as response:
                     if response.status == 200:
                         return response
-                    logger.warning(f"Request to {url} returned status {response.status}")
+                    logger.warning(
+                        f"Request to {url} returned status {response.status}"
+                    )
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 logger.debug(f"Attempt {attempt + 1} failed for {url}: {e}")
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(self.retry_delay)
-        
+
         return None
-    
-    async def fetch_text(self, url: str, encoding: str = 'utf-8') -> Optional[str]:
+
+    async def fetch_text(self, url: str, encoding: str = "utf-8") -> Optional[str]:
         response = await self.fetch_url(url)
         if response:
             try:
@@ -59,7 +64,7 @@ class BaseScraper(ABC):
             except Exception as e:
                 logger.error(f"Failed to decode response from {url}: {e}")
         return None
-    
+
     async def fetch_json(self, url: str) -> Optional[Dict[str, Any]]:
         response = await self.fetch_url(url)
         if response:
@@ -68,7 +73,7 @@ class BaseScraper(ABC):
             except Exception as e:
                 logger.error(f"Failed to parse JSON from {url}: {e}")
         return None
-    
+
     async def fetch_binary(self, url: str) -> Optional[bytes]:
         response = await self.fetch_url(url)
         if response:
@@ -77,58 +82,59 @@ class BaseScraper(ABC):
             except Exception as e:
                 logger.error(f"Failed to read binary from {url}: {e}")
         return None
-    
-    async def fetch_multiple(self, urls: List[str], 
-                          handler: Callable[[str, Any], None] = None) -> List[Any]:
+
+    async def fetch_multiple(
+        self, urls: List[str], handler: Callable[[str, Any], None] = None
+    ) -> List[Any]:
         semaphore = asyncio.Semaphore(self.concurrency_limit)
         results = []
-        
+
         async def fetch_with_semaphore(url: str):
             async with semaphore:
                 return await self.fetch_text(url)
-        
+
         tasks = [fetch_with_semaphore(url) for url in urls]
-        
+
         for future in asyncio.as_completed(tasks):
             result = await future
             if result and handler:
                 handler(urls[tasks.index(future)], result)
             results.append(result)
-        
+
         return results
-    
+
     def run_in_thread(self, func: Callable, *args, **kwargs) -> Any:
         if self.executor:
             future = self.executor.submit(func, *args, **kwargs)
             return future.result()
         return func(*args, **kwargs)
-    
+
     @abstractmethod
     async def scrape(self, *args, **kwargs) -> Any:
         pass
-    
+
     def scrape_sync(self, *args, **kwargs) -> Any:
         return asyncio.run(self.scrape(*args, **kwargs))
-    
+
     def process_queue(self, handler: Callable, batch_size: int = 100) -> int:
         processed = 0
         batch = []
-        
+
         while not self.results_queue.empty():
             item = self.results_queue.get()
             batch.append(item)
-            
+
             if len(batch) >= batch_size:
                 handler(batch)
                 processed += len(batch)
                 batch = []
-        
+
         if batch:
             handler(batch)
             processed += len(batch)
-        
+
         return processed
-    
+
     def log_progress(self, current: int, total: int, message: str = ""):
         if total > 0:
             progress = (current / total) * 100
