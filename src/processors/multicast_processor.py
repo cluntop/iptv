@@ -5,10 +5,15 @@ from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..config import DEFAULT_BATCH_SIZE
-from ..database import (Channel, ChannelModel, Multicast, MulticastModel,
-                        UDPxy, UDPxyModel)
-from ..utils import (FileTools, NetworkTools, StringTools, VideoTools,
-                     get_logger)
+from ..database import (
+    Channel,
+    ChannelModel,
+    Multicast,
+    MulticastModel,
+    UDPxy,
+    UDPxyModel,
+)
+from ..utils import FileTools, NetworkTools, StringTools, VideoTools, get_logger
 
 logger = get_logger("multicast_processor")
 

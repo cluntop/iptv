@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from typing import Optional, Tuple
 
-from ..config import LOGO_BASE_URL
+from ..config.constants import LOGO_BASE_URL
 from . import get_logger
 
 logger = get_logger("file_tools")

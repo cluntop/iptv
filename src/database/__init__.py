@@ -1,7 +1,21 @@
-from .models import (Category, CategoryModel, Channel, ChannelModel, Hotel,
-                     HotelModel, Multicast, MulticastModel, UDPxy, UDPxyModel)
-from .sqlite_manager import (SQLiteConnectionPool, SQLiteManager,
-                             get_db_manager, init_database)
+from .models import (
+    Category,
+    CategoryModel,
+    Channel,
+    ChannelModel,
+    Hotel,
+    HotelModel,
+    Multicast,
+    MulticastModel,
+    UDPxy,
+    UDPxyModel,
+)
+from .sqlite_manager import (
+    SQLiteConnectionPool,
+    SQLiteManager,
+    get_db_manager,
+    init_database,
+)
 
 __all__ = [
     "SQLiteManager",

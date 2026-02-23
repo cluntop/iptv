@@ -1,14 +1,35 @@
-from .cloudflare_pages import (CloudflarePagesBuild, CloudflarePagesConfig,
-                               CloudflarePagesConfigManager,
-                               CloudflarePagesHeader, CloudflarePagesRedirect,
-                               CloudflarePagesRoute, CloudflarePagesService)
-from .config import (CloudflarePagesConfigData, Config, DatabaseConfig,
-                     LogConfig, ProxyConfig, SchedulerConfig, ScraperConfig,
-                     get_config, init_config)
-from .constants import (CHANNEL_TYPES, DEFAULT_BATCH_SIZE, DEFAULT_CONCURRENCY,
-                        DEFAULT_TIMEOUT, DOWNLOAD_URLS, IPTV_SCAN_URLS,
-                        LOGO_BASE_URL, PROVINCE_NAMES, SEARCH_URLS,
-                        SORT_WEIGHT)
+from .cloudflare_pages import (
+    CloudflarePagesBuild,
+    CloudflarePagesConfig,
+    CloudflarePagesConfigManager,
+    CloudflarePagesHeader,
+    CloudflarePagesRedirect,
+    CloudflarePagesRoute,
+    CloudflarePagesService,
+)
+from .config import (
+    CloudflarePagesConfigData,
+    Config,
+    DatabaseConfig,
+    LogConfig,
+    ProxyConfig,
+    SchedulerConfig,
+    ScraperConfig,
+    get_config,
+    init_config,
+)
+from .constants import (
+    CHANNEL_TYPES,
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_CONCURRENCY,
+    DEFAULT_TIMEOUT,
+    DOWNLOAD_URLS,
+    IPTV_SCAN_URLS,
+    LOGO_BASE_URL,
+    PROVINCE_NAMES,
+    SEARCH_URLS,
+    SORT_WEIGHT,
+)
 
 __all__ = [
     "Config",
