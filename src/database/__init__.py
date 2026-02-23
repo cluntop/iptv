@@ -1,4 +1,4 @@
-from .sqlite_manager import SQLiteManager, get_db_manager
+from .sqlite_manager import SQLiteManager, get_db_manager, init_database
 from .models import (
     Channel,
     Hotel,
@@ -15,6 +15,7 @@ from .models import (
 __all__ = [
     "SQLiteManager",
     "get_db_manager",
+    "init_database",
     "Channel",
     "Hotel",
     "Multicast",
