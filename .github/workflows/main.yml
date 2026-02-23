@@ -2,21 +2,20 @@ name: Update iptv
 
 on:
   schedule:
-    # 每天 UTC 时间 00:00 执行（北京时间早上 8:00）
+    # 
     - cron: '0 0 * * *'
-  workflow_dispatch: # 允许在 GitHub 网页上手动触发
+  workflow_dispatch:
 
 env:
-  IMAGEOS: ubuntu22
 
 permissions:
-  contents: write # 允许 Action 提交代码到仓库
+  contents: write
 
 jobs:
   build:
     runs-on: self-hosted
-    #container: 
-      #image: python:3.11-slim
+    container: 
+      image: python:3.11-slim
 
     steps:
     - name: Checkout repository
