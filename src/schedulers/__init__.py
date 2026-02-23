@@ -1,3 +1,3 @@
-from .scheduler import TaskScheduler, get_scheduler, init_scheduler
+from .scheduler import TaskScheduler, Task, TaskStatus, get_scheduler, init_scheduler
 
-__all__ = ["TaskScheduler", "get_scheduler", "init_scheduler"]
+__all__ = ["TaskScheduler", "Task", "TaskStatus", "get_scheduler", "init_scheduler"]
