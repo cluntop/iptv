@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 from ..config import LOGO_BASE_URL
-from ..utils import get_logger
+from . import get_logger
 
 logger = get_logger("file_tools")
 
