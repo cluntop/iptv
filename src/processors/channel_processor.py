@@ -4,7 +4,7 @@ from datetime import datetime
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from ..database import Channel, CategoryModel, ChannelModel
+from ..database import Channel, Category, CategoryModel, ChannelModel
 from ..utils import get_logger, VideoTools, StringTools
 from ..config import DEFAULT_BATCH_SIZE
 
