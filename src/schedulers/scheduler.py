@@ -118,8 +118,13 @@ class TaskScheduler:
             return now + timedelta(minutes=minutes)
 
         elif schedule.startswith("weekly@"):
-            weekday = int(schedule.split("@")[1])
-            hour = int(schedule.split("@")[2])
+            parts = schedule.split("@")
+            if len(parts) == 2:
+                hour = int(parts[1])
+                weekday = 0
+            else:
+                weekday = int(parts[1])
+                hour = int(parts[2])
             days_ahead = (weekday - now.weekday() + 7) % 7
             if days_ahead == 0 and now.hour >= hour:
                 days_ahead = 7
