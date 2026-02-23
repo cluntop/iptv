@@ -1,4 +1,4 @@
-name: Update iptv
+name: Update IPTV
 
 on:
   schedule:
@@ -6,46 +6,39 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
-# env:
-
 permissions:
   contents: write
 
 jobs:
   build:
-    runs-on: self-hosted
-    #container: 
-      #image: python:3.11-slim
-
+    runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    #- name: Set up Python
-      #uses: actions/setup-python@v5
-      #with:
-        #python-version: '3.11' # 推荐使用 3.11 以获取更佳的 asyncio 性能
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
     - name: Increase open files limit
       run: |
         ulimit -n 65536
-        echo "Default open files limit increased for high-concurrency connections."
 
     - name: Install Dependencies
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        .venv/bin/python -m pip install --upgrade pip
-        .venv/bin/python -m pip install aiohttp uvloop
+        python -m pip install --upgrade pip
+        pip install aiohttp uvloop
 
     - name: Run M3U Check Script
-      run: .venv/bin/python main.py
+      run: python main.py
 
     - name: Commit and Push M3U file
       run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
+        git config --local user.email "github-actions@users.noreply.github.com"
+        git config --local user.name "github-actions"
         git add itvlist.m3u
-        # 如果文件没有变化，则不报错退出
-        git commit -m "Update iptv list[skip ci]" || exit 0
+
+        git commit -m "Update iptv list" || exit 0
         git push
