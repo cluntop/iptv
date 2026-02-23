@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTV Live Streaming Service</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #00d4ff;
+        }
+        .card p {
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        .btn:hover { opacity: 0.8; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+        }
+        .links-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        .links-section h2 {
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .link-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: #00d4ff;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .link-item:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .stat-label {
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IPTV Streaming Service</h1>
+            <p class="subtitle">High-quality live TV streaming with automatic updates</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="channel-count">--</div>
+                <div class="stat-label">Channels</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="source-count">--</div>
+                <div class="stat-label">Sources</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">Auto</div>
+                <div class="stat-label">Updates</div>
+            </div>
+        </div>
+
+        <div class="links-section">
+            <h2>Playlist Links</h2>
+            <div class="link-list">
+                <a href="/m3u/iptv.m3u" class="link-item">
+                    <span>M3U Playlist</span>
+                </a>
+                <a href="/txt/iptv.txt" class="link-item">
+                    <span>TXT Playlist</span>
+                </a>
+                <a href="/epg/epg.xml" class="link-item">
+                    <span>EPG Guide</span>
+                </a>
+                <a href="/api/channels" class="link-item">
+                    <span>API</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>M3U Format</h3>
+                <p>Standard M3U playlist format compatible with most IPTV players like VLC, IPTV Smarters, TiviMate, and more.</p>
+                <a href="/m3u/iptv.m3u" class="btn">Download M3U</a>
+            </div>
+            <div class="card">
+                <h3>TXT Format</h3>
+                <p>Simple text format with channel name and URL pairs, perfect for quick imports and custom configurations.</p>
+                <a href="/txt/iptv.txt" class="btn btn-outline">Download TXT</a>
+            </div>
+            <div class="card">
+                <h3>EPG Guide</h3>
+                <p>Electronic Program Guide in XMLTV format for displaying channel schedules and program information.</p>
+                <a href="/epg/epg.xml" class="btn btn-outline">Get EPG</a>
+            </div>
+            <div class="card">
+                <h3>API Access</h3>
+                <p>RESTful API endpoints for programmatic access to channel lists, metadata, and streaming URLs.</p>
+                <a href="/api/channels" class="btn btn-outline">View API</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by Cloudflare Pages | Auto-updated daily</p>
+        </footer>
+    </div>
+    <script>
+        fetch('/api/stats')
+            .then(r => r.json())
+            .then(data => {
+                if (data.channels) document.getElementById('channel-count').textContent = data.channels;
+                if (data.sources) document.getElementById('source-count').textContent = data.sources;
+            })
+            .catch(() => {});
+    </script>
+</body>
+</html>

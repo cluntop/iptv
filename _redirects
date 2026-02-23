@@ -1,0 +1,20 @@
+# IPTV Source Redirects
+/m3u /m3u/iptv.m3u 301
+/txt /txt/iptv.txt 301
+/epg /epg/epg.xml 301
+/live /m3u/live.m3u 301
+/iptv /m3u/iptv.m3u 301
+/playlist /m3u/iptv.m3u 301
+
+# EPG Redirects
+/epg.xml /epg/epg.xml 301
+/guide /epg/epg.xml 301
+
+# API Redirects
+/api /api/channels.json 301
+/channels /api/channels.json 301
+
+# Old paths to new paths
+/playlist.m3u /m3u/iptv.m3u 301
+/iptv.m3u /m3u/iptv.m3u 301
+/iptv.txt /txt/iptv.txt 301

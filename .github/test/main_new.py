@@ -4,9 +4,10 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from src.config import init_config
-from src.database import init_database
+from src.config import init_config, get_config
+from src.database import init_database, get_db_manager
 from src.utils import setup_logging, get_logger
+from src.schedulers import init_scheduler, get_scheduler
 from src.services import IPTVService, HotelService, MulticastService
 
 def main():
@@ -35,7 +36,6 @@ def main():
         multicast_service = MulticastService(db_manager)
         
         if config.scheduler.enabled:
-            from src.schedulers import init_scheduler
             scheduler = init_scheduler(db_manager)
             
             scheduler.add_task(

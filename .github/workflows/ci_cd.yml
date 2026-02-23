@@ -1,0 +1,283 @@
+name: IPTV System CI/CD
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      run_type:
+        description: 'Run type'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - scrape
+          - process
+          - generate
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 mypy black isort
+
+    - name: Run Black
+      run: black --check src/ tests/
+
+    - name: Run isort
+      run: isort --check-only src/ tests/
+
+    - name: Run Flake8
+      run: flake8 src/ tests/ --max-line-length=120 --ignore=E203,W503
+
+    - name: Run MyPy
+      run: mypy src/ --ignore-missing-imports || true
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_new.txt
+        pip install pytest pytest-cov pytest-asyncio
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  scrape:
+    name: Scrape IPTV Channels
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_type != 'process'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Increase open files limit
+      run: |
+        ulimit -n 65536
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_new.txt
+
+    - name: Create directories
+      run: |
+        mkdir -p data/logs data/output data/downloads
+
+    - name: Run IPTV scraper
+      env:
+        IPTV_DB_PATH: data/iptv.db
+        LOG_LEVEL: INFO
+      run: |
+        python main_new.py
+
+    - name: Upload database
+      uses: actions/upload-artifact@v4
+      with:
+        name: iptv-database
+        path: data/iptv.db
+        retention-days: 7
+
+    - name: Upload generated files
+      uses: actions/upload-artifact@v4
+      with:
+        name: iptv-files
+        path: |
+          data/output/*.txt
+          data/output/*.m3u
+        retention-days: 7
+
+  generate:
+    name: Generate IPTV Files
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'schedule' || github.event.inputs.run_type == 'generate'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_new.txt
+
+    - name: Create directories
+      run: |
+        mkdir -p data/logs data/output
+
+    - name: Generate IPTV files
+      env:
+        IPTV_DB_PATH: data/iptv.db
+        LOG_LEVEL: INFO
+      run: |
+        python -c "
+        import sys
+        sys.path.insert(0, '.')
+        from src.config import init_config
+        from src.database import init_database
+        from src.services import IPTVService
+        
+        config = init_config()
+        db = init_database(config.database.db_path)
+        service = IPTVService(db)
+        service.generate_iptv_files()
+        "
+
+    - name: Upload generated files
+      uses: actions/upload-artifact@v4
+      with:
+        name: iptv-generated
+        path: data/output/
+        retention-days: 30
+
+  commit:
+    name: Commit and Push
+    runs-on: ubuntu-latest
+    needs: [scrape, generate]
+    if: always() && (needs.scrape.result == 'success' || needs.generate.result == 'success')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Copy files
+      run: |
+        mkdir -p data/output
+        if [ -d artifacts/iptv-files ]; then
+          cp artifacts/iptv-files/* data/output/ 2>/dev/null || true
+        fi
+        if [ -d artifacts/iptv-generated ]; then
+          cp artifacts/iptv-generated/* data/output/ 2>/dev/null || true
+        fi
+
+    - name: Commit and push
+      run: |
+        git config --local user.email "github-actions@users.noreply.github.com"
+        git config --local user.name "github-actions"
+        
+        git add data/output/*.txt data/output/*.m3u || true
+        git add data/iptv.db || true
+        
+        git diff --staged --quiet || git commit -m "Update IPTV files [$(date +'%Y-%m-%d %H:%M:%S')]" || exit 0
+        git push
+
+  health-check:
+    name: System Health Check
+    runs-on: ubuntu-latest
+    needs: [scrape, generate]
+    if: always()
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_new.txt
+
+    - name: Run health check
+      env:
+        IPTV_DB_PATH: data/iptv.db
+      run: |
+        python -c "
+        import sys
+        sys.path.insert(0, '.')
+        from src.config import init_config
+        from src.database import init_database
+        
+        config = init_config()
+        db = init_database(config.database.db_path)
+        health = db.health_check()
+        
+        print('System Health Status:')
+        print(f'  Status: {health[\"status\"]}')
+        print(f'  Database: {health[\"db_path\"]}')
+        print(f'  Channels: {health[\"channel_count\"]}')
+        print(f'  Hotels: {health[\"hotel_count\"]}')
+        print(f'  Size: {health[\"db_size_mb\"]} MB')
+        print(f'  Pool: {health[\"pool_size\"]} connections')
+        
+        if health['status'] != 'healthy':
+            sys.exit(1)
+        "
+
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: failure()
+    
+    steps:
+    - name: Send failure notification
+      run: |
+        echo "IPTV System workflow failed. Check logs for details."

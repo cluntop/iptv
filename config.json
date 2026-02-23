@@ -1,0 +1,46 @@
+{
+  "database": {
+    "db_type": "sqlite",
+    "db_path": "data/iptv.db",
+    "pool_size": 10,
+    "connection_timeout": 30
+  },
+  "scraper": {
+    "timeout": 15,
+    "max_retries": 3,
+    "retry_delay": 1.0,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "concurrency_limit": 800,
+    "download_timeout": 30
+  },
+  "scheduler": {
+    "enabled": true,
+    "hotel_update_hour": 2,
+    "multicast_update_hour": 4,
+    "speed_check_hour": 6,
+    "cleanup_hour": 0
+  },
+  "log": {
+    "level": "INFO",
+    "log_dir": "data/logs",
+    "max_file_size": 10485760,
+    "backup_count": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "data_dir": "data",
+  "output_dir": "data/output",
+  "download_dir": "data/downloads",
+  "quake_api_token": "",
+  "fofa_api_token": "",
+  "hunter_api_key": "",
+  "proxy": {
+    "timeout": 15,
+    "max_concurrent": 50,
+    "test_duration": 10
+  },
+  "cloudflare_pages": {
+    "enabled": false,
+    "project_name": "iptv",
+    "output_dir": "data/output"
+  }
+}

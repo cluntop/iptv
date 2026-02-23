@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/data/output/*",
+    "/m3u/*",
+    "/txt/*",
+    "/epg/*",
+    "/assets/*",
+    "/*.m3u",
+    "/*.txt",
+    "/*.xml",
+    "/*.html",
+    "/*.css",
+    "/*.js",
+    "/*.png",
+    "/*.jpg",
+    "/*.ico"
+  ]
+}

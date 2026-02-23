@@ -1,0 +1,65 @@
+{
+  "$schema": "https://developers.cloudflare.com/pages/platform/build-configuration",
+  "build": {
+    "command": "python main.py",
+    "output_directory": "data/output",
+    "root_directory": "",
+    "environment": {
+      "PYTHON_VERSION": "3.11",
+      "NODE_VERSION": "18"
+    }
+  },
+  "headers": [
+    {
+      "for": "/*.m3u",
+      "values": {
+        "Content-Type": "application/vnd.apple.mpegurl",
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "for": "/*.txt",
+      "values": {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "for": "/*.xml",
+      "values": {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
+      }
+    }
+  ],
+  "redirects": [
+    {
+      "from": "/m3u",
+      "to": "/m3u/iptv.m3u",
+      "status": 301
+    },
+    {
+      "from": "/txt",
+      "to": "/txt/iptv.txt",
+      "status": 301
+    },
+    {
+      "from": "/epg",
+      "to": "/epg/epg.xml",
+      "status": 301
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "/api/*",
+      "custom_domain": false
+    }
+  ],
+  "functions": {
+    "directory": "functions",
+    "exclude": ["node_modules/**", "src/**"]
+  }
+}
