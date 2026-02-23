@@ -1,11 +1,11 @@
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from ..database import Channel, Category, ChannelModel, CategoryModel
-from ..scrapers import IPTVScraper
-from ..processors import ChannelProcessor
-from ..utils import get_logger, FileTools
 from ..config import get_config
+from ..database import Category, CategoryModel, Channel, ChannelModel
+from ..processors import ChannelProcessor
+from ..scrapers import IPTVScraper
+from ..utils import FileTools, get_logger
 
 logger = get_logger("iptv_service")
 

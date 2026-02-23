@@ -1,8 +1,8 @@
-import os
 import json
-from pathlib import Path
+import os
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

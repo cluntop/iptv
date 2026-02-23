@@ -1,13 +1,13 @@
-import re
 import json
-from typing import List, Dict, Any, Optional, Tuple
+import re
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse
 
-from .base_scraper import BaseScraper
-from ..database import Channel, Category
-from ..utils import get_logger, StringTools, FileTools
 from ..config import IPTV_SCAN_URLS, LOGO_BASE_URL
+from ..database import Category, Channel
+from ..utils import FileTools, StringTools, get_logger
+from .base_scraper import BaseScraper
 
 logger = get_logger("iptv_scraper")
 

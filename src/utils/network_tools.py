@@ -1,9 +1,11 @@
 import re
 import socket
-import requests
 from typing import Optional, Tuple
 from urllib.parse import urlparse
+
+import requests
 from bs4 import BeautifulSoup
+
 from ..utils import get_logger
 
 logger = get_logger("network_tools")

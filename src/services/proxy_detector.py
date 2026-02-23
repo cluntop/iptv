@@ -1,13 +1,14 @@
 import asyncio
-import aiohttp
+import csv
 import socket
 import time
-import csv
-from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List, Optional, Tuple
+
+import aiohttp
 
 from ..utils import get_logger
 

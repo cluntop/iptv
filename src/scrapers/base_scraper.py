@@ -1,11 +1,12 @@
 import asyncio
-import aiohttp
+import time
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any, Callable
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from threading import Thread
-import time
+from typing import Any, Callable, Dict, List, Optional
+
+import aiohttp
 
 from ..utils import get_logger
 

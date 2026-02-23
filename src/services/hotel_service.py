@@ -1,11 +1,11 @@
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from ..database import Hotel, HotelModel
-from ..scrapers import HotelScraper
-from ..processors import HotelProcessor
-from ..utils import get_logger
 from ..config import get_config
+from ..database import Hotel, HotelModel
+from ..processors import HotelProcessor
+from ..scrapers import HotelScraper
+from ..utils import get_logger
 
 logger = get_logger("hotel_service")
 

@@ -1,13 +1,13 @@
-import re
 import json
-from typing import List, Dict, Any, Optional, Tuple
+import re
 from datetime import datetime
-from urllib.parse import urlparse, quote
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import quote, urlparse
 
-from .base_scraper import BaseScraper
-from ..database import Hotel
-from ..utils import get_logger, NetworkTools, StringTools
 from ..config import PROVINCE_NAMES, SEARCH_URLS
+from ..database import Hotel
+from ..utils import NetworkTools, StringTools, get_logger
+from .base_scraper import BaseScraper
 
 logger = get_logger("hotel_scraper")
 

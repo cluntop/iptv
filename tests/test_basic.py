@@ -1,12 +1,12 @@
-import unittest
 import sys
+import unittest
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.config import init_config, get_config
-from src.database import init_database, get_db_manager
+from src.config import get_config, init_config
+from src.database import get_db_manager, init_database
 from src.utils import get_logger
 
 
@@ -33,8 +33,9 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(health["status"], "healthy")
 
     def test_channel_operations(self):
-        from src.database import Channel, ChannelModel
         from datetime import datetime
+
+        from src.database import Channel, ChannelModel
 
         channel_model = ChannelModel(self.db)
 

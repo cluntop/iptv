@@ -1,8 +1,9 @@
 import re
 from pathlib import Path
 from typing import Optional, Tuple
-from ..utils import get_logger
+
 from ..config import LOGO_BASE_URL
+from ..utils import get_logger
 
 logger = get_logger("file_tools")
 

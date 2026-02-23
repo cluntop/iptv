@@ -1,5 +1,6 @@
 import re
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
+
 from ..utils import get_logger
 
 logger = get_logger("string_tools")

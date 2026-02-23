@@ -1,12 +1,12 @@
 import re
-from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote
 
-from .base_scraper import BaseScraper
-from ..database import Multicast, UDPxy
-from ..utils import get_logger, FileTools, StringTools
 from ..config import DOWNLOAD_URLS
+from ..database import Multicast, UDPxy
+from ..utils import FileTools, StringTools, get_logger
+from .base_scraper import BaseScraper
 
 logger = get_logger("multicast_scraper")
 

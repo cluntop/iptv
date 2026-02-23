@@ -1,9 +1,9 @@
 import logging
 import sys
-from pathlib import Path
-from logging.handlers import RotatingFileHandler
-from typing import Optional
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Optional
 
 
 class Logger:
