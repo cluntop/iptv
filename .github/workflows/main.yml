@@ -6,6 +6,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch: # 允许在 GitHub 网页上手动触发
 
+env:
+  ImageOS: ubuntu22
+
+
 permissions:
   contents: write # 允许 Action 提交代码到仓库
 
