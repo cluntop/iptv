@@ -1,4 +1,9 @@
-from .sqlite_manager import SQLiteManager, SQLiteConnectionPool, get_db_manager, init_database
+from .sqlite_manager import (
+    SQLiteManager,
+    SQLiteConnectionPool,
+    get_db_manager,
+    init_database,
+)
 from .models import (
     Channel,
     Hotel,
