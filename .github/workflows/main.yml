@@ -21,10 +21,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11' # 推荐使用 3.11 以获取更佳的 asyncio 性能
+    #- name: Set up Python
+      #uses: actions/setup-python@v5
+      #with:
+        #python-version: '3.11' # 推荐使用 3.11 以获取更佳的 asyncio 性能
 
     - name: Increase open files limit
       run: |
