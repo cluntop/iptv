@@ -14,8 +14,8 @@ permissions:
 jobs:
   build:
     runs-on: self-hosted
-    container: 
-      image: python:3.11-slim
+    #container: 
+      #image: python:3.11-slim
 
     steps:
     - name: Checkout repository
