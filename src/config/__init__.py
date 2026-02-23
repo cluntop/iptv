@@ -1,4 +1,4 @@
-from .config import Config, get_config
+from .config import Config, get_config, init_config
 from .constants import (
     LOGO_BASE_URL,
     DEFAULT_TIMEOUT,
@@ -16,6 +16,7 @@ from .cloudflare_pages import (
 __all__ = [
     "Config",
     "get_config",
+    "init_config",
     "LOGO_BASE_URL",
     "DEFAULT_TIMEOUT",
     "DEFAULT_BATCH_SIZE",
