@@ -17,17 +17,17 @@ from .proxy_player_tester import (
 )
 
 __all__ = [
-    "IPTVService",
     "HotelService",
-    "MulticastService",
-    "ProxyDetector",
-    "ProxyInfo",
-    "ProxyCheckResult",
-    "ProxyFileParser",
-    "ProxyService",
-    "ProxyPlayerTester",
-    "ProxyPlayResult",
+    "IPTVService",
     "InternalSource",
     "InternalSourceTester",
+    "MulticastService",
+    "ProxyCheckResult",
+    "ProxyDetector",
+    "ProxyFileParser",
+    "ProxyInfo",
+    "ProxyPlayResult",
     "ProxyPlayService",
+    "ProxyPlayerTester",
+    "ProxyService",
 ]

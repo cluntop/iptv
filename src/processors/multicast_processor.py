@@ -1,5 +1,5 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed, ThreadPoolExecutor
 from datetime import datetime
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
