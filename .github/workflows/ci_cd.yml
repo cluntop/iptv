@@ -67,12 +67,11 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements_new.txt
+        pip install -r requirements.txt
         pip install pytest pytest-cov pytest-asyncio
 
     - name: Run tests
@@ -82,7 +81,7 @@ jobs:
     - name: Upload coverage
       uses: codecov/codecov-action@v5
       with:
-        file: ./coverage.xml
+        files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
 
@@ -109,7 +108,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements_new.txt
+        pip install -r requirements.txt
 
     - name: Create directories
       run: |
@@ -157,7 +156,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements_new.txt
+        pip install -r requirements.txt
 
     - name: Create directories
       run: |
@@ -243,7 +242,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements_new.txt
+        pip install -r requirements.txt
 
     - name: Run health check
       env:
