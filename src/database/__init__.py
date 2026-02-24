@@ -10,7 +10,6 @@ from .models import (
     UDPxy,
     UDPxyModel,
 )
-
 from .sqlite_manager import (
     SQLiteConnectionPool,
     SQLiteManager,
