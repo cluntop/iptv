@@ -32,15 +32,11 @@ class ChannelProcessor:
             logger.error(f"Failed to insert channels: {e}")
             return 0
 
-    def process_channel_speeds(
-        self, channel_ids: List[int], thread_count: int = 5
-    ) -> int:
+    def process_channel_speeds(self, channel_ids: List[int], thread_count: int = 5) -> int:
         if not channel_ids:
             return 0
 
-        logger.info(
-            f"Processing speeds for {len(channel_ids)} channels with {thread_count} threads"
-        )
+        logger.info(f"Processing speeds for {len(channel_ids)} channels with {thread_count} threads")
 
         queues = [Queue() for _ in range(thread_count)]
         for i, channel_id in enumerate(channel_ids):
@@ -48,10 +44,7 @@ class ChannelProcessor:
 
         processed = 0
         with ThreadPoolExecutor(max_workers=thread_count) as executor:
-            futures = [
-                executor.submit(self._process_speed_queue, queue, i)
-                for i, queue in enumerate(queues)
-            ]
+            futures = [executor.submit(self._process_speed_queue, queue, i) for i, queue in enumerate(queues)]
 
             for future in as_completed(futures):
                 processed += future.result()
@@ -86,8 +79,7 @@ class ChannelProcessor:
                 else:
                     speed = channel.speed
                     logger.debug(
-                        f"Thread {thread_id}: Channel {channel_id}:{channel.name} - "
-                        f"Existing speed: {speed} Mbps"
+                        f"Thread {thread_id}: Channel {channel_id}:{channel.name} - " f"Existing speed: {speed} Mbps"
                     )
 
                 updates.append(
@@ -115,9 +107,7 @@ class ChannelProcessor:
 
         return processed
 
-    def validate_channels(
-        self, channels: List[Channel], categories: List[Category]
-    ) -> List[Channel]:
+    def validate_channels(self, channels: List[Channel], categories: List[Category]) -> List[Channel]:
         valid_channels = []
         seen = set()
 
@@ -175,9 +165,7 @@ class ChannelProcessor:
             with open(output_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
-            logger.info(
-                f"Generated IPTV file: {output_file} with {total_channels} channels"
-            )
+            logger.info(f"Generated IPTV file: {output_file} with {total_channels} channels")
             return total_channels
 
         except Exception as e:

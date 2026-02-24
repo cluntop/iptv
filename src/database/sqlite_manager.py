@@ -40,9 +40,7 @@ class SQLiteConnectionPool:
             with self._lock:
                 self._created_connections += 1
 
-            logger.debug(
-                f"Created new SQLite connection, total: {self._created_connections}"
-            )
+            logger.debug(f"Created new SQLite connection, total: {self._created_connections}")
             return conn
         except sqlite3.Error as e:
             logger.error(f"Failed to create SQLite connection: {e}")
@@ -265,9 +263,7 @@ class SQLiteManager:
                 "timestamp": datetime.now().isoformat(),
             }
 
-    def execute_query(
-        self, query: str, params: Tuple = (), fetch: bool = True
-    ) -> Optional[List[sqlite3.Row]]:
+    def execute_query(self, query: str, params: Tuple = (), fetch: bool = True) -> Optional[List[sqlite3.Row]]:
         with self.pool.get_connection() as conn:
             cursor = conn.cursor()
             try:
@@ -277,9 +273,7 @@ class SQLiteManager:
                 conn.commit()
                 return None
             except sqlite3.Error as e:
-                logger.error(
-                    f"Query execution failed: {query}, params: {params}, error: {e}"
-                )
+                logger.error(f"Query execution failed: {query}, params: {params}, error: {e}")
                 raise
 
     def execute_many(self, query: str, params_list: List[Tuple]) -> int:

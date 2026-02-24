@@ -68,9 +68,7 @@ class Config:
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     log: LogConfig = field(default_factory=LogConfig)
     proxy: ProxyConfig = field(default_factory=ProxyConfig)
-    cloudflare_pages: CloudflarePagesConfigData = field(
-        default_factory=CloudflarePagesConfigData
-    )
+    cloudflare_pages: CloudflarePagesConfigData = field(default_factory=CloudflarePagesConfigData)
 
     data_dir: str = "data"
     output_dir: str = "data/output"
@@ -102,9 +100,7 @@ class Config:
         if "proxy" in data:
             config.proxy = ProxyConfig(**data["proxy"])
         if "cloudflare_pages" in data:
-            config.cloudflare_pages = CloudflarePagesConfigData(
-                **data["cloudflare_pages"]
-            )
+            config.cloudflare_pages = CloudflarePagesConfigData(**data["cloudflare_pages"])
 
         for key in [
             "data_dir",
