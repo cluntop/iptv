@@ -28,13 +28,20 @@ class SQLiteConnectionPool:
 
     def _create_connection(self) -> Optional[sqlite3.Connection]:
         try:
-            conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30.0)
+            db_path = self.db_path
+            is_memory = db_path == ":memory:"
+            if is_memory:
+                db_path = "file::memory:?cache=shared"
+                conn = sqlite3.connect(db_path, check_same_thread=False, timeout=30.0, uri=True)
+            else:
+                conn = sqlite3.connect(db_path, check_same_thread=False, timeout=30.0)
             conn.row_factory = sqlite3.Row
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA synchronous=NORMAL")
-            conn.execute("PRAGMA cache_size=-64000")
-            conn.execute("PRAGMA temp_store=MEMORY")
-            conn.execute("PRAGMA mmap_size=268435456")
+            if not is_memory:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA synchronous=NORMAL")
+                conn.execute("PRAGMA cache_size=-64000")
+                conn.execute("PRAGMA temp_store=MEMORY")
+                conn.execute("PRAGMA mmap_size=268435456")
 
             with self._lock:
                 self._created_connections += 1
