@@ -2,6 +2,10 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from ..utils import get_logger
+
+logger = get_logger("models")
+
 
 @dataclass
 class Channel:
@@ -118,7 +122,8 @@ class ChannelModel:
                 fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to insert channel: {e}")
             return 0
 
     def insert_many(self, channels: List[Channel]) -> int:
@@ -144,7 +149,8 @@ class ChannelModel:
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to update channel {channel_id}: {e}")
             return False
 
     def update_many(self, updates: List[Dict[str, Any]]) -> int:
@@ -206,7 +212,8 @@ class ChannelModel:
         try:
             self.db.execute_query(query, (channel_id,), fetch=False)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to delete channel {channel_id}: {e}")
             return False
 
     def delete_by_sign(self, sign: int) -> int:
@@ -214,7 +221,8 @@ class ChannelModel:
         try:
             self.db.execute_query(query, (sign,), fetch=False)
             return self.db.execute_query("SELECT changes()")[0][0]
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to delete channels by sign {sign}: {e}")
             return 0
 
     def count(self) -> int:
@@ -261,7 +269,8 @@ class HotelModel:
                 fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to insert hotel: {e}")
             return 0
 
     def insert_many(self, hotels: List[Hotel]) -> int:
@@ -287,7 +296,8 @@ class HotelModel:
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to update hotel {ip}: {e}")
             return False
 
     def get_by_ip(self, ip: str) -> Optional[Hotel]:
@@ -312,7 +322,8 @@ class HotelModel:
         try:
             self.db.execute_query(query, (ip,), fetch=False)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to delete hotel {ip}: {e}")
             return False
 
     def count(self) -> int:
@@ -359,7 +370,8 @@ class MulticastModel:
                 fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to insert multicast: {e}")
             return 0
 
     def update(self, multicast_id: int, **kwargs) -> bool:
@@ -373,7 +385,8 @@ class MulticastModel:
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to update multicast {multicast_id}: {e}")
             return False
 
     def get_by_id(self, multicast_id: int) -> Optional[Multicast]:
@@ -424,7 +437,8 @@ class CategoryModel:
                 fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to insert category: {e}")
             return 0
 
     def get_enabled(self) -> List[Category]:
@@ -479,7 +493,8 @@ class UDPxyModel:
                 fetch=False,
             )
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to insert udpxy: {e}")
             return False
 
     def insert_many(self, udpxy_list: List[UDPxy]) -> int:
@@ -505,7 +520,8 @@ class UDPxyModel:
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to update udpxy {udpxy_id}: {e}")
             return False
 
     def get_by_mid(self, mid: int, status: int = None) -> List[UDPxy]:
@@ -523,7 +539,8 @@ class UDPxyModel:
         try:
             self.db.execute_query(query, (mid, status), fetch=False)
             return self.db.execute_query("SELECT changes()")[0][0]
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to delete udpxy by status: {e}")
             return 0
 
     def count(self, mid: int = None, status: int = None) -> int:
