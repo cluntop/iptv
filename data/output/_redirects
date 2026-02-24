@@ -2,4 +2,3 @@
 /txt /txt/iptv.txt 301
 /epg /epg/epg.xml 301
 /live /m3u/live.m3u 301
-/* /index.html 200 Country=CN
