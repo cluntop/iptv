@@ -282,6 +282,17 @@ class SQLiteManager:
                 logger.error(f"Query execution failed: {query}, params: {params}, error: {e}")
                 raise
 
+    def execute_insert(self, query: str, params: Tuple = ()) -> int:
+        with self.pool.get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(query, params)
+                conn.commit()
+                return cursor.lastrowid
+            except sqlite3.Error as e:
+                logger.error(f"Insert execution failed: {query}, params: {params}, error: {e}")
+                raise
+
     def execute_many(self, query: str, params_list: List[Tuple]) -> int:
         with self.pool.get_connection() as conn:
             cursor = conn.cursor()

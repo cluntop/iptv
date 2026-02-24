@@ -106,7 +106,7 @@ class ChannelModel:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         try:
-            self.db.execute_query(
+            return self.db.execute_insert(
                 query,
                 (
                     channel.name,
@@ -119,9 +119,7 @@ class ChannelModel:
                     channel.sign,
                     channel.time,
                 ),
-                fetch=False,
             )
-            return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception as e:
             logger.error(f"Failed to insert channel: {e}")
             return 0
@@ -256,7 +254,7 @@ class HotelModel:
             VALUES (?, ?, ?, ?, ?, ?)
         """
         try:
-            self.db.execute_query(
+            return self.db.execute_insert(
                 query,
                 (
                     hotel.ip,
@@ -266,9 +264,7 @@ class HotelModel:
                     hotel.status,
                     hotel.time,
                 ),
-                fetch=False,
             )
-            return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception as e:
             logger.error(f"Failed to insert hotel: {e}")
             return 0
@@ -354,7 +350,7 @@ class MulticastModel:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         try:
-            self.db.execute_query(
+            return self.db.execute_insert(
                 query,
                 (
                     multicast.country,
@@ -367,9 +363,7 @@ class MulticastModel:
                     multicast.status,
                     multicast.time,
                 ),
-                fetch=False,
             )
-            return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception as e:
             logger.error(f"Failed to insert multicast: {e}")
             return 0
@@ -431,12 +425,10 @@ class CategoryModel:
             VALUES (?, ?, ?, ?)
         """
         try:
-            self.db.execute_query(
+            return self.db.execute_insert(
                 query,
                 (category.name, category.psw, category.type, category.enable),
-                fetch=False,
             )
-            return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
         except Exception as e:
             logger.error(f"Failed to insert category: {e}")
             return 0
