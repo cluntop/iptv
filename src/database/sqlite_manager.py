@@ -1,6 +1,5 @@
 import sqlite3
 import threading
-import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -63,7 +62,7 @@ class SQLiteConnectionPool:
             if conn:
                 try:
                     self._pool.put(conn, timeout=5.0)
-                except:
+                except Exception:
                     conn.close()
 
     def close_all(self):
@@ -74,7 +73,7 @@ class SQLiteConnectionPool:
             except Empty:
                 break
 
-        logger.info(f"Closed all SQLite connections")
+        logger.info("Closed all SQLite connections")
 
 
 class SQLiteManager:

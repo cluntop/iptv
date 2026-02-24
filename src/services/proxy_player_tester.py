@@ -4,10 +4,7 @@ import subprocess
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-import aiohttp
+from typing import Any, Dict, List, Optional
 
 from ..utils import get_logger
 

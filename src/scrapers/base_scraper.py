@@ -1,9 +1,7 @@
 import asyncio
-import time
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
-from threading import Thread
 from typing import Any, Callable, Dict, List, Optional
 
 import aiohttp

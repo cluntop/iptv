@@ -1,7 +1,5 @@
-import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import quote
 
 from ..config import DOWNLOAD_URLS
 from ..database import Multicast, UDPxy

@@ -1,4 +1,3 @@
-import json
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
@@ -6,7 +5,7 @@ from urllib.parse import quote, urlparse
 
 from ..config import PROVINCE_NAMES, SEARCH_URLS
 from ..database import Hotel
-from ..utils import NetworkTools, StringTools, get_logger
+from ..utils import NetworkTools, get_logger
 from .base_scraper import BaseScraper
 
 logger = get_logger("hotel_scraper")

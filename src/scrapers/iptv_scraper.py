@@ -1,12 +1,9 @@
-import json
-import re
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse
 
 from ..config import IPTV_SCAN_URLS, LOGO_BASE_URL
 from ..database import Category, Channel
-from ..utils import FileTools, StringTools, get_logger
+from ..utils import StringTools, get_logger
 from .base_scraper import BaseScraper
 
 logger = get_logger("iptv_scraper")
@@ -53,6 +50,8 @@ class IPTVScraper(BaseScraper):
 
     async def check_stream(self, name: str, url: str) -> Optional[Dict[str, Any]]:
         try:
+            import aiohttp
+
             timeout = aiohttp.ClientTimeout(total=5, connect=2, sock_read=3)
             async with self.session.get(url, timeout=timeout) as response:
                 if response.status == 200:
@@ -78,6 +77,8 @@ class IPTVScraper(BaseScraper):
         return None
 
     async def validate_channels(self, channels: List[Tuple[str, str]]) -> List[Dict[str, Any]]:
+        import asyncio
+
         valid_channels = []
         semaphore = asyncio.Semaphore(self.concurrency_limit)
 

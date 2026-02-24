@@ -1,11 +1,7 @@
-import asyncio
 import base64
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import quote, urlencode
-
-import aiohttp
+from typing import Any, Dict, List
 
 from ..config import get_config
 from ..database import Hotel, UDPxy

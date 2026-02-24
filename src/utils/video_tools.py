@@ -1,7 +1,7 @@
 import json
 import re
 import subprocess
-from typing import List, Optional, Tuple
+from typing import List
 
 from ..utils import get_logger
 
@@ -69,7 +69,7 @@ class VideoTools:
             if frame_str and frame_str != "0/0":
                 try:
                     frame = eval(frame_str)
-                except:
+                except Exception:
                     frame = 0.0
             else:
                 frame = 0.0

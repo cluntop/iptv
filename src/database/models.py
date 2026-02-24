@@ -97,7 +97,7 @@ class ChannelModel:
 
     def insert(self, channel: Channel) -> int:
         query = """
-            INSERT INTO iptv_channels 
+            INSERT OR IGNORE INTO iptv_channels 
             (name, url, type, width, height, frame, speed, sign, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """

@@ -5,9 +5,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.config import get_config, init_config
-from src.database import get_db_manager, init_database
-from src.utils import get_logger
+from src.config import get_config, init_config  # noqa: E402
+from src.database import init_database  # noqa: E402
 
 
 class TestConfig(unittest.TestCase):

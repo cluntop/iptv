@@ -2,7 +2,6 @@ import asyncio
 import csv
 import socket
 import time
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -250,7 +249,8 @@ class ProxyDetector:
             result.is_high_anonymous = is_high_anon
 
             logger.info(
-                f"Proxy {proxy} check completed: valid={result.is_valid}, latency={result.latency_ms}ms, exit_ip={result.exit_ip}"
+                f"Proxy {proxy} check completed: valid={result.is_valid}, "
+                f"latency={result.latency_ms}ms, exit_ip={result.exit_ip}"
             )
 
             return result

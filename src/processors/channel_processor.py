@@ -1,8 +1,7 @@
-import asyncio
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from queue import Queue
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from ..config import DEFAULT_BATCH_SIZE
 from ..database import Category, CategoryModel, Channel, ChannelModel

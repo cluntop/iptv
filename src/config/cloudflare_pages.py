@@ -1,6 +1,5 @@
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -377,14 +376,14 @@ class CloudflarePagesService:
         return self.manager.load_from_file(file_path)
 
     def create_headers_file(self, output_dir: str = "data/output", file_path: str = "_headers") -> bool:
-        headers_content = f"""# IPTV Headers Configuration
+        headers_content = """# IPTV Headers Configuration
 # M3U files
 /*.m3u
   Content-Type: application/vnd.apple.mpegurl
   Cache-Control: public, max-age=3600
   Access-Control-Allow-Origin: *
 
-# TXT files  
+# TXT files
 /*.txt
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=3600
