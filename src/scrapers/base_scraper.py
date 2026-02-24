@@ -123,7 +123,17 @@ class BaseScraper(ABC):
         pass
 
     def scrape_sync(self, *args, **kwargs) -> Any:
-        return asyncio.run(self.scrape(*args, **kwargs))
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop is not None:
+            with ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, self.scrape(*args, **kwargs))
+                return future.result()
+        else:
+            return asyncio.run(self.scrape(*args, **kwargs))
 
     def process_queue(self, handler: Callable, batch_size: int = 100) -> int:
         processed = 0
