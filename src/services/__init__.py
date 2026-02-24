@@ -11,9 +11,9 @@ from .proxy_detector import (
 from .proxy_player_tester import (
     InternalSource,
     InternalSourceTester,
+    ProxyPlayerTester,
     ProxyPlayResult,
     ProxyPlayService,
-    ProxyPlayerTester,
 )
 
 __all__ = [

@@ -134,18 +134,14 @@ class MulticastProcessor:
                         udpxy_url = f"http://{udpxy.ip}:{udpxy.port}"
 
                         for m3u8_link in m3u8_links:
-                            multicast_addr = self.net_tools.extract_multicast_addr(
-                                m3u8_link
-                            )
+                            multicast_addr = self.net_tools.extract_multicast_addr(m3u8_link)
                             if not multicast_addr:
                                 continue
 
                             full_url = f"{udpxy_url}/rtp/{multicast_addr}"
 
                             normalized_name = StringTools.normalize_channel_name(name)
-                            category_match = StringTools.match_category(
-                                normalized_name, categories
-                            )
+                            category_match = StringTools.match_category(normalized_name, categories)
                             if not category_match:
                                 continue
 
@@ -203,9 +199,7 @@ class MulticastProcessor:
 
     def update_udpxy_status(self, udpxy_id: str, actv: int, status: int) -> bool:
         try:
-            return self.udpxy_model.update(
-                udpxy_id, actv=actv, status=status, time=datetime.now()
-            )
+            return self.udpxy_model.update(udpxy_id, actv=actv, status=status, time=datetime.now())
         except Exception as e:
             logger.error(f"Failed to update udpxy status for {udpxy_id}: {e}")
             return False
