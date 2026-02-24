@@ -53,9 +53,7 @@ class VideoTools:
         ]
 
         try:
-            result = subprocess.run(
-                command, capture_output=True, text=True, timeout=timeout
-            )
+            result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
             output = result.stdout
             data = json.loads(output)
 

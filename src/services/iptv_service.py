@@ -16,9 +16,7 @@ class IPTVService:
         self.config = get_config()
         self.channel_model = ChannelModel(db_manager)
         self.category_model = CategoryModel(db_manager)
-        self.channel_processor = ChannelProcessor(
-            db_manager, self.config.scraper.__dict__
-        )
+        self.channel_processor = ChannelProcessor(db_manager, self.config.scraper.__dict__)
         self.scraper = IPTVScraper(self.config.scraper.__dict__)
 
     def scrape_network_channels(self) -> List[Channel]:
@@ -29,9 +27,7 @@ class IPTVService:
             categories = self.category_model.get_enabled()
 
             channels = self.scraper.convert_to_channels(channels_data, categories)
-            valid_channels = self.channel_processor.validate_channels(
-                channels, categories
-            )
+            valid_channels = self.channel_processor.validate_channels(channels, categories)
 
             if valid_channels:
                 inserted = self.channel_processor.insert_channels(valid_channels)

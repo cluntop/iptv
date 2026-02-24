@@ -102,9 +102,7 @@ class MulticastScraper(BaseScraper):
         logger.info(f"Parsed {len(channels)} channels from {file_path}")
         return channels
 
-    async def scrape_quake(
-        self, country: str, province: str, isp: str, api_token: str = ""
-    ) -> List[UDPxy]:
+    async def scrape_quake(self, country: str, province: str, isp: str, api_token: str = "") -> List[UDPxy]:
         udpxy_list = []
 
         if not api_token:
@@ -127,9 +125,7 @@ class MulticastScraper(BaseScraper):
         }
 
         try:
-            async with self.session.post(
-                api_url, headers=headers, json=data
-            ) as response:
+            async with self.session.post(api_url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
 
@@ -148,9 +144,7 @@ class MulticastScraper(BaseScraper):
                             )
                             udpxy_list.append(udpxy)
 
-            logger.info(
-                f"Found {len(udpxy_list)} udpxy from Quake for {province}-{isp}"
-            )
+            logger.info(f"Found {len(udpxy_list)} udpxy from Quake for {province}-{isp}")
 
         except Exception as e:
             logger.error(f"Error scraping Quake: {e}")
@@ -169,9 +163,7 @@ class MulticastScraper(BaseScraper):
 
         return []
 
-    def create_multicast_entry(
-        self, country: str, province: str, isp: str, path: str
-    ) -> Multicast:
+    def create_multicast_entry(self, country: str, province: str, isp: str, path: str) -> Multicast:
         return Multicast(
             country=country,
             province=province,

@@ -60,9 +60,7 @@ class ProxyPlayerTester:
 
     def _check_ffmpeg(self) -> bool:
         try:
-            subprocess.run(
-                [self.ffmpeg_path, "-version"], capture_output=True, timeout=5
-            )
+            subprocess.run([self.ffmpeg_path, "-version"], capture_output=True, timeout=5)
             return True
         except (
             subprocess.CalledProcessError,
@@ -84,9 +82,7 @@ class ProxyPlayerTester:
             return f"{protocol}://{username}:{password}@{host}:{port}"
         return f"{protocol}://{host}:{port}"
 
-    def _build_udpxy_url(
-        self, proxy_host: str, proxy_port: int, source_url: str
-    ) -> str:
+    def _build_udpxy_url(self, proxy_host: str, proxy_port: int, source_url: str) -> str:
         if "rtp://" in source_url.lower():
             addr = source_url.lower().replace("rtp://", "")
         elif "udp://" in source_url.lower():
@@ -118,9 +114,7 @@ class ProxyPlayerTester:
             result.error_message = "FFmpeg not available"
             return result
 
-        proxy_url = self._build_proxy_url(
-            proxy_host, proxy_port, proxy_protocol, username, password
-        )
+        proxy_url = self._build_proxy_url(proxy_host, proxy_port, proxy_protocol, username, password)
 
         env = {}
         if proxy_protocol.lower() == "http":
@@ -174,9 +168,7 @@ class ProxyPlayerTester:
                 if fps_match:
                     result.frame_rate = float(fps_match.group(1))
 
-                logger.info(
-                    f"Proxy {proxy_host}:{proxy_port} play test succeeded for {source_url}"
-                )
+                logger.info(f"Proxy {proxy_host}:{proxy_port} play test succeeded for {source_url}")
             else:
                 result.error_message = "FFmpeg returned non-zero exit code"
                 logger.debug(f"Proxy play test failed: {output[-500:]}")
@@ -223,9 +215,7 @@ class ProxyPlayerTester:
         start_time = time.time()
 
         try:
-            process = subprocess.Popen(
-                ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
+            process = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             stdout, stderr = process.communicate(timeout=test_duration + 15)
 
@@ -251,9 +241,7 @@ class ProxyPlayerTester:
                 if fps_match:
                     result.frame_rate = float(fps_match.group(1))
 
-                logger.info(
-                    f"UDPxy {proxy_host}:{proxy_port} play test succeeded for {source_url}"
-                )
+                logger.info(f"UDPxy {proxy_host}:{proxy_port} play test succeeded for {source_url}")
             else:
                 result.error_message = "FFmpeg returned non-zero exit code"
                 logger.debug(f"UDPxy play test failed: {output[-500:]}")
@@ -301,13 +289,9 @@ class ProxyPlayerTester:
         proxy_type = proxy_type.lower()
 
         if proxy_type == "udpxy":
-            return await self.test_udpxy_play(
-                proxy_host, proxy_port, source_url, test_duration
-            )
+            return await self.test_udpxy_play(proxy_host, proxy_port, source_url, test_duration)
         elif proxy_type == "socks5":
-            return await self.test_socks5_play(
-                proxy_host, proxy_port, source_url, username, password, test_duration
-            )
+            return await self.test_socks5_play(proxy_host, proxy_port, source_url, username, password, test_duration)
         else:
             return await self.test_http_proxy_play(
                 proxy_host,
@@ -334,9 +318,7 @@ class ProxyPlayerTester:
                     proxy_host=proxy_info.get("host", proxy_info.get("ip", "")),
                     proxy_port=proxy_info.get("port", 0),
                     source_url=source_url,
-                    proxy_type=proxy_info.get(
-                        "type", proxy_info.get("protocol", "http")
-                    ),
+                    proxy_type=proxy_info.get("type", proxy_info.get("protocol", "http")),
                     username=proxy_info.get("username"),
                     password=proxy_info.get("password"),
                     test_duration=test_duration,
@@ -350,9 +332,7 @@ class ProxyPlayerTester:
             if isinstance(result, Exception):
                 valid_results.append(
                     ProxyPlayResult(
-                        proxy_host=proxy_list[i].get(
-                            "host", proxy_list[i].get("ip", "")
-                        ),
+                        proxy_host=proxy_list[i].get("host", proxy_list[i].get("ip", "")),
                         proxy_port=proxy_list[i].get("port", 0),
                         proxy_protocol=proxy_list[i].get("type", "http"),
                         source_url=source_url,
@@ -481,9 +461,7 @@ class ProxyPlayService:
         )
         return result.to_dict()
 
-    def test_udpxy(
-        self, proxy_host: str, proxy_port: int, multicast_url: str
-    ) -> Dict[str, Any]:
+    def test_udpxy(self, proxy_host: str, proxy_port: int, multicast_url: str) -> Dict[str, Any]:
         result = self.tester.test_sync(
             proxy_host=proxy_host,
             proxy_port=proxy_port,
@@ -510,24 +488,16 @@ class ProxyPlayService:
         )
         return result.to_dict()
 
-    def batch_test(
-        self, proxy_list: List[Dict[str, Any]], source_url: str
-    ) -> List[Dict[str, Any]]:
+    def batch_test(self, proxy_list: List[Dict[str, Any]], source_url: str) -> List[Dict[str, Any]]:
         results = asyncio.run(self.tester.batch_test_proxies(proxy_list, source_url))
         return [r.to_dict() for r in results]
 
-    def find_best_proxy(
-        self, source_url: str, proxies: List[Dict[str, Any]]
-    ) -> Optional[Dict[str, Any]]:
+    def find_best_proxy(self, source_url: str, proxies: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         source = InternalSource(url=source_url)
-        result = asyncio.run(
-            self.internal_tester.find_best_proxy_for_source(source, proxies)
-        )
+        result = asyncio.run(self.internal_tester.find_best_proxy_for_source(source, proxies))
         return result.to_dict() if result else None
 
-    def get_playable_proxies(
-        self, results: List[Dict[str, Any]], min_speed: float = 1.0
-    ) -> List[Dict[str, Any]]:
+    def get_playable_proxies(self, results: List[Dict[str, Any]], min_speed: float = 1.0) -> List[Dict[str, Any]]:
         playable = []
 
         for result in results:

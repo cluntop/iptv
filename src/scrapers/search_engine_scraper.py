@@ -96,14 +96,10 @@ class FofaScraper(BaseScraper):
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
         self.api_url = "https://fofa.info/api/v1/search/all"
-        self.api_token = (
-            self.config.get("fofa_api_token") or get_config().fofa_api_token
-        )
+        self.api_token = self.config.get("fofa_api_token") or get_config().fofa_api_token
         self.net_tools = NetworkTools(timeout=self.timeout)
 
-    async def search(
-        self, query: str, size: int = 100, page: int = 1
-    ) -> List[Dict[str, Any]]:
+    async def search(self, query: str, size: int = 100, page: int = 1) -> List[Dict[str, Any]]:
         if not self.api_token:
             logger.warning("FOFA API token not configured")
             return []
@@ -207,9 +203,7 @@ class HunterScraper(BaseScraper):
         self.api_key = self.config.get("hunter_api_key", "")
         self.net_tools = NetworkTools(timeout=self.timeout)
 
-    async def search(
-        self, query: str, size: int = 100, page: int = 1
-    ) -> List[Dict[str, Any]]:
+    async def search(self, query: str, size: int = 100, page: int = 1) -> List[Dict[str, Any]]:
         if not self.api_key:
             logger.warning("Hunter API key not configured")
             return []
@@ -233,9 +227,7 @@ class HunterScraper(BaseScraper):
                     data = await response.json()
 
                     if data.get("code") != 200:
-                        logger.error(
-                            f"Hunter API error: {data.get('message', 'Unknown error')}"
-                        )
+                        logger.error(f"Hunter API error: {data.get('message', 'Unknown error')}")
                         return []
 
                     for item in data.get("data", {}).get("arr", []):
@@ -250,18 +242,14 @@ class HunterScraper(BaseScraper):
                             }
                         )
 
-                    logger.info(
-                        f"Hunter found {len(results)} results for query: {query}"
-                    )
+                    logger.info(f"Hunter found {len(results)} results for query: {query}")
 
         except Exception as e:
             logger.error(f"Hunter search error: {e}")
 
         return results
 
-    async def search_iptv_sources(
-        self, country: str = "中国", province: str = None, city: str = None
-    ) -> List[Hotel]:
+    async def search_iptv_sources(self, country: str = "中国", province: str = None, city: str = None) -> List[Hotel]:
         query_parts = ["iptv/live/zh_cn.js"]
 
         if country:
@@ -307,14 +295,10 @@ class QuakeScraper(BaseScraper):
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
         self.api_url = "https://quake.360.net/api/v3/search/quake_service"
-        self.api_token = (
-            self.config.get("quake_api_token") or get_config().quake_api_token
-        )
+        self.api_token = self.config.get("quake_api_token") or get_config().quake_api_token
         self.net_tools = NetworkTools(timeout=self.timeout)
 
-    async def search(
-        self, query: str, size: int = 100, start: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def search(self, query: str, size: int = 100, start: int = 0) -> List[Dict[str, Any]]:
         if not self.api_token:
             logger.warning("Quake API token not configured")
             return []
@@ -336,16 +320,12 @@ class QuakeScraper(BaseScraper):
         results = []
 
         try:
-            async with self.session.post(
-                self.api_url, headers=headers, json=data
-            ) as response:
+            async with self.session.post(self.api_url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
 
                     if result.get("code") != 0:
-                        logger.error(
-                            f"Quake API error: {result.get('message', 'Unknown error')}"
-                        )
+                        logger.error(f"Quake API error: {result.get('message', 'Unknown error')}")
                         return []
 
                     for item in result.get("data", []):
@@ -363,18 +343,14 @@ class QuakeScraper(BaseScraper):
                             }
                         )
 
-                    logger.info(
-                        f"Quake found {len(results)} results for query: {query}"
-                    )
+                    logger.info(f"Quake found {len(results)} results for query: {query}")
 
         except Exception as e:
             logger.error(f"Quake search error: {e}")
 
         return results
 
-    async def search_udpxy(
-        self, country: str = "中国", province: str = None, isp: str = None
-    ) -> List[UDPxy]:
+    async def search_udpxy(self, country: str = "中国", province: str = None, isp: str = None) -> List[UDPxy]:
         query_parts = ["udpxy"]
 
         if country:
@@ -405,9 +381,7 @@ class QuakeScraper(BaseScraper):
         logger.info(f"Quake found {len(udpxy_list)} udpxy sources")
         return udpxy_list
 
-    async def search_iptv_sources(
-        self, country: str = "中国", province: str = None, isp: str = None
-    ) -> List[Hotel]:
+    async def search_iptv_sources(self, country: str = "中国", province: str = None, isp: str = None) -> List[Hotel]:
         query_parts = ['app: "iptv"']
 
         if country:
@@ -462,9 +436,7 @@ class MultiSourceScraper(BaseScraper):
         self.hunter = HunterScraper(config)
         self.quake = QuakeScraper(config)
 
-    async def search_all(
-        self, query: str, engines: List[str] = None
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    async def search_all(self, query: str, engines: List[str] = None) -> Dict[str, List[Dict[str, Any]]]:
         engines = engines or ["fofa", "hunter", "quake"]
         results = {}
 
@@ -514,9 +486,7 @@ class MultiSourceScraper(BaseScraper):
 
         if "hunter" in engines:
             try:
-                hotels = await self.hunter.search_iptv_sources(
-                    country=country, province=province
-                )
+                hotels = await self.hunter.search_iptv_sources(country=country, province=province)
                 for hotel in hotels:
                     key = f"{hotel.ip}:{hotel.port}"
                     if key not in seen:
@@ -527,9 +497,7 @@ class MultiSourceScraper(BaseScraper):
 
         if "quake" in engines:
             try:
-                hotels = await self.quake.search_iptv_sources(
-                    country=country, province=province, isp=isp
-                )
+                hotels = await self.quake.search_iptv_sources(country=country, province=province, isp=isp)
                 for hotel in hotels:
                     key = f"{hotel.ip}:{hotel.port}"
                     if key not in seen:
@@ -541,9 +509,7 @@ class MultiSourceScraper(BaseScraper):
         logger.info(f"Multi-source search found {len(all_hotels)} unique hotel sources")
         return all_hotels
 
-    async def search_udpxy_sources(
-        self, country: str = "中国", province: str = None, isp: str = None
-    ) -> List[UDPxy]:
+    async def search_udpxy_sources(self, country: str = "中国", province: str = None, isp: str = None) -> List[UDPxy]:
         return await self.quake.search_udpxy(country, province, isp)
 
     async def scrape(self, query: str = None, **kwargs) -> Any:

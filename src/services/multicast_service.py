@@ -16,9 +16,7 @@ class MulticastService:
         self.config = get_config()
         self.multicast_model = MulticastModel(db_manager)
         self.udpxy_model = UDPxyModel(db_manager)
-        self.multicast_processor = MulticastProcessor(
-            db_manager, self.config.scraper.__dict__
-        )
+        self.multicast_processor = MulticastProcessor(db_manager, self.config.scraper.__dict__)
         self.scraper = MulticastScraper(self.config.scraper.__dict__)
 
     def download_sources(self) -> List[str]:
@@ -63,9 +61,7 @@ class MulticastService:
                 validated_udpxy = self.multicast_processor.validate_udpxy(udpxy)
 
                 if validated_udpxy:
-                    self.multicast_processor.update_udpxy_status(
-                        udpxy.id, validated_udpxy.actv, validated_udpxy.status
-                    )
+                    self.multicast_processor.update_udpxy_status(udpxy.id, validated_udpxy.actv, validated_udpxy.status)
                     validated += 1
 
             logger.info(f"Validated {validated} udpxy")
@@ -98,9 +94,7 @@ class MulticastService:
                     if channels:
                         from ..processors import ChannelProcessor
 
-                        channel_processor = ChannelProcessor(
-                            self.db, self.config.scraper.__dict__
-                        )
+                        channel_processor = ChannelProcessor(self.db, self.config.scraper.__dict__)
                         inserted = channel_processor.insert_channels(channels)
                         total_channels += inserted
 
@@ -145,9 +139,7 @@ class MulticastService:
 
     def update_multicast(self, multicast_id: int, **kwargs) -> bool:
         try:
-            return self.multicast_processor.update_multicast_status(
-                multicast_id, **kwargs
-            )
+            return self.multicast_processor.update_multicast_status(multicast_id, **kwargs)
         except Exception as e:
             logger.error(f"Failed to update multicast: {e}")
             return False

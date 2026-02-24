@@ -98,9 +98,7 @@ class CloudflarePagesConfigManager:
     def create_default_config(self) -> CloudflarePagesConfig:
         config = CloudflarePagesConfig(
             name=self.project_name,
-            build=CloudflarePagesBuild(
-                command="python main.py", output_dir="data/output", root_dir=""
-            ),
+            build=CloudflarePagesBuild(command="python main.py", output_dir="data/output", root_dir=""),
             headers=[
                 CloudflarePagesHeader(path="/m3u/*", headers=self.DEFAULT_M3U_HEADERS),
                 CloudflarePagesHeader(path="/txt/*", headers=self.DEFAULT_TXT_HEADERS),
@@ -125,22 +123,16 @@ class CloudflarePagesConfigManager:
         headers_list = []
 
         if include_m3u:
-            headers_list.append(
-                CloudflarePagesHeader(path="/*.m3u", headers=self.DEFAULT_M3U_HEADERS)
-            )
+            headers_list.append(CloudflarePagesHeader(path="/*.m3u", headers=self.DEFAULT_M3U_HEADERS))
 
         if include_txt:
-            headers_list.append(
-                CloudflarePagesHeader(path="/*.txt", headers=self.DEFAULT_TXT_HEADERS)
-            )
+            headers_list.append(CloudflarePagesHeader(path="/*.txt", headers=self.DEFAULT_TXT_HEADERS))
 
         config.headers = headers_list
 
         return config
 
-    def add_route(
-        self, config: CloudflarePagesConfig, pattern: str, zone_name: str = None
-    ) -> CloudflarePagesConfig:
+    def add_route(self, config: CloudflarePagesConfig, pattern: str, zone_name: str = None) -> CloudflarePagesConfig:
         config.routes.append(CloudflarePagesRoute(pattern=pattern, zone_name=zone_name))
         return config
 
@@ -151,11 +143,7 @@ class CloudflarePagesConfigManager:
         to_path: str,
         status_code: int = 301,
     ) -> CloudflarePagesConfig:
-        config.redirects.append(
-            CloudflarePagesRedirect(
-                from_path=from_path, to_path=to_path, status_code=status_code
-            )
-        )
+        config.redirects.append(CloudflarePagesRedirect(from_path=from_path, to_path=to_path, status_code=status_code))
         return config
 
     def add_header_rule(
@@ -164,9 +152,7 @@ class CloudflarePagesConfigManager:
         config.headers.append(CloudflarePagesHeader(path=path, headers=headers))
         return config
 
-    def set_env_var(
-        self, config: CloudflarePagesConfig, key: str, value: str
-    ) -> CloudflarePagesConfig:
+    def set_env_var(self, config: CloudflarePagesConfig, key: str, value: str) -> CloudflarePagesConfig:
         config.env_vars[key] = value
         return config
 
@@ -208,9 +194,7 @@ class CloudflarePagesConfigManager:
     def to_yaml(self, config: CloudflarePagesConfig) -> str:
         return yaml.dump(config.to_dict(), default_flow_style=False, allow_unicode=True)
 
-    def save_wrangler_toml(
-        self, config: CloudflarePagesConfig, file_path: str = "wrangler.toml"
-    ) -> bool:
+    def save_wrangler_toml(self, config: CloudflarePagesConfig, file_path: str = "wrangler.toml") -> bool:
         try:
             content = self.to_wrangler_toml(config)
             Path(file_path).write_text(content, encoding="utf-8")
@@ -220,9 +204,7 @@ class CloudflarePagesConfigManager:
             logger.error(f"Failed to save wrangler.toml: {e}")
             return False
 
-    def save_pages_json(
-        self, config: CloudflarePagesConfig, file_path: str = "pages.json"
-    ) -> bool:
+    def save_pages_json(self, config: CloudflarePagesConfig, file_path: str = "pages.json") -> bool:
         try:
             content = self.to_pages_json(config)
             Path(file_path).write_text(content, encoding="utf-8")
@@ -232,9 +214,7 @@ class CloudflarePagesConfigManager:
             logger.error(f"Failed to save pages.json: {e}")
             return False
 
-    def save_yaml(
-        self, config: CloudflarePagesConfig, file_path: str = ".cloudflare.yaml"
-    ) -> bool:
+    def save_yaml(self, config: CloudflarePagesConfig, file_path: str = ".cloudflare.yaml") -> bool:
         try:
             content = self.to_yaml(config)
             Path(file_path).write_text(content, encoding="utf-8")
@@ -290,11 +270,7 @@ class CloudflarePagesConfigManager:
 
         routes = []
         for r in data.get("routes", []):
-            routes.append(
-                CloudflarePagesRoute(
-                    pattern=r.get("pattern", ""), zone_name=r.get("zone_name")
-                )
-            )
+            routes.append(CloudflarePagesRoute(pattern=r.get("pattern", ""), zone_name=r.get("zone_name")))
 
         redirects = []
         for r in data.get("redirects", []):
@@ -308,11 +284,7 @@ class CloudflarePagesConfigManager:
 
         headers = []
         for h in data.get("headers", []):
-            headers.append(
-                CloudflarePagesHeader(
-                    path=h.get("path", ""), headers=h.get("headers", {})
-                )
-            )
+            headers.append(CloudflarePagesHeader(path=h.get("path", ""), headers=h.get("headers", {})))
 
         return CloudflarePagesConfig(
             name=data.get("name", self.project_name),
@@ -350,9 +322,7 @@ class CloudflarePagesConfigManager:
             if name_match:
                 config.name = name_match.group(1)
 
-            compat_match = re.search(
-                r'^compatibility_date\s*=\s*"([^"]+)"', content, re.MULTILINE
-            )
+            compat_match = re.search(r'^compatibility_date\s*=\s*"([^"]+)"', content, re.MULTILINE)
             if compat_match:
                 config.compatibility_date = compat_match.group(1)
 
@@ -391,22 +361,14 @@ class CloudflarePagesService:
 
         return configs
 
-    def save_all_configs(
-        self, output_dir: str = "data/output", base_path: str = "."
-    ) -> Dict[str, bool]:
+    def save_all_configs(self, output_dir: str = "data/output", base_path: str = ".") -> Dict[str, bool]:
         config = self.manager.create_iptv_config(output_dir=output_dir)
         base = Path(base_path)
 
         results = {
-            "wrangler.toml": self.manager.save_wrangler_toml(
-                config, str(base / "wrangler.toml")
-            ),
-            "pages.json": self.manager.save_pages_json(
-                config, str(base / "pages.json")
-            ),
-            ".cloudflare.yaml": self.manager.save_yaml(
-                config, str(base / ".cloudflare.yaml")
-            ),
+            "wrangler.toml": self.manager.save_wrangler_toml(config, str(base / "wrangler.toml")),
+            "pages.json": self.manager.save_pages_json(config, str(base / "pages.json")),
+            ".cloudflare.yaml": self.manager.save_yaml(config, str(base / ".cloudflare.yaml")),
         }
 
         return results
@@ -414,9 +376,7 @@ class CloudflarePagesService:
     def load_config(self, file_path: str) -> Optional[CloudflarePagesConfig]:
         return self.manager.load_from_file(file_path)
 
-    def create_headers_file(
-        self, output_dir: str = "data/output", file_path: str = "_headers"
-    ) -> bool:
+    def create_headers_file(self, output_dir: str = "data/output", file_path: str = "_headers") -> bool:
         headers_content = f"""# IPTV Headers Configuration
 # M3U files
 /*.m3u
@@ -451,9 +411,7 @@ class CloudflarePagesService:
             logger.error(f"Failed to create _headers file: {e}")
             return False
 
-    def create_redirects_file(
-        self, redirects: List[Dict[str, str]] = None, file_path: str = "_redirects"
-    ) -> bool:
+    def create_redirects_file(self, redirects: List[Dict[str, str]] = None, file_path: str = "_redirects") -> bool:
         default_redirects = [
             {"from": "/m3u", "/to": "/m3u/iptv.m3u", "status": "301"},
             {"from": "/txt", "/to": "/txt/iptv.txt", "status": "301"},

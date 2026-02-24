@@ -17,8 +17,7 @@ class NetworkTools:
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "User-Agent": user_agent
-                or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "User-Agent": user_agent or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
                 "Accept-Encoding": "gzip, deflate",
@@ -118,20 +117,8 @@ class NetworkTools:
                 if table:
                     rows = table.find_all("tr")
                     if len(rows) > 2:
-                        ip_add = (
-                            rows[1]
-                            .find_all("td")[1]
-                            .text.replace("上报纠错", "")
-                            .replace(" ", "")
-                            .strip()
-                        )
-                        ip_ips = (
-                            rows[2]
-                            .find_all("td")[1]
-                            .text.replace("上报纠错", "")
-                            .replace(" ", "")
-                            .strip()
-                        )
+                        ip_add = rows[1].find_all("td")[1].text.replace("上报纠错", "").replace(" ", "").strip()
+                        ip_ips = rows[2].find_all("td")[1].text.replace("上报纠错", "").replace(" ", "").strip()
                         return f"{ip_add}【{ip_ips}】"
         except Exception as e:
             logger.debug(f"Failed to get IP location for {ip}: {e}")

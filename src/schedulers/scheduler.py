@@ -170,9 +170,7 @@ class TaskScheduler:
 
                     if task.next_run and task.next_run <= now:
                         if task.status != TaskStatus.RUNNING:
-                            threading.Thread(
-                                target=self._execute_task, args=(task,), daemon=True
-                            ).start()
+                            threading.Thread(target=self._execute_task, args=(task,), daemon=True).start()
 
             self._stop_event.wait(60)
 
@@ -206,9 +204,7 @@ class TaskScheduler:
             if name in self.tasks:
                 task = self.tasks[name]
                 if task.status != TaskStatus.RUNNING:
-                    threading.Thread(
-                        target=self._execute_task, args=(task,), daemon=True
-                    ).start()
+                    threading.Thread(target=self._execute_task, args=(task,), daemon=True).start()
                     return True
         return False
 

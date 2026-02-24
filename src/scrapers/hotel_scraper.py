@@ -15,9 +15,7 @@ logger = get_logger("hotel_scraper")
 class HotelScraper(BaseScraper):
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
-        self.net_tools = NetworkTools(
-            timeout=self.timeout, user_agent=self.config.get("user_agent")
-        )
+        self.net_tools = NetworkTools(timeout=self.timeout, user_agent=self.config.get("user_agent"))
 
     async def scrape_gyssi(self) -> List[Hotel]:
         hotels = []
@@ -70,9 +68,7 @@ class HotelScraper(BaseScraper):
                                 time=datetime.now(),
                             )
                             hotels.append(hotel)
-                            logger.info(
-                                f"Found hotel: {ip}:{port} with {channel_count} channels"
-                            )
+                            logger.info(f"Found hotel: {ip}:{port} with {channel_count} channels")
 
         except Exception as e:
             logger.error(f"Error scraping gyssi: {e}")
@@ -123,15 +119,11 @@ class HotelScraper(BaseScraper):
                         time=datetime.now(),
                     )
                     hotels.append(hotel)
-                    logger.info(
-                        f"Found hotel from FOFA: {ip}:{port} with {channel_count} channels"
-                    )
+                    logger.info(f"Found hotel from FOFA: {ip}:{port} with {channel_count} channels")
 
         return hotels
 
-    async def scan_network_range(
-        self, base_ip: str, port: int
-    ) -> List[Tuple[str, int]]:
+    async def scan_network_range(self, base_ip: str, port: int) -> List[Tuple[str, int]]:
         results = []
         last_dot = base_ip.rfind(".")
         if last_dot == -1:

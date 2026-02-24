@@ -41,9 +41,7 @@ class FileTools:
                             channel_link = lines[i + 1].strip()
 
                             if 'group-title="' in trimmed_line:
-                                group_title = trimmed_line.split('group-title="')[
-                                    1
-                                ].split('"')[0]
+                                group_title = trimmed_line.split('group-title="')[1].split('"')[0]
                                 if group_title and group_title != current_group:
                                     if current_group:
                                         txt_output += f"{current_group},#genre#\n"
@@ -62,9 +60,7 @@ class FileTools:
             return None
 
     @staticmethod
-    def convert_txt_to_m3u(
-        txt_file: str, logo_base: str = LOGO_BASE_URL
-    ) -> Optional[str]:
+    def convert_txt_to_m3u(txt_file: str, logo_base: str = LOGO_BASE_URL) -> Optional[str]:
         txt_path = Path(txt_file)
         if not txt_path.exists():
             logger.error(f"File not found: {txt_file}")

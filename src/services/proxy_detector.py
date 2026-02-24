@@ -70,9 +70,7 @@ class ProxyDetector:
         self.max_concurrent = max_concurrent
         self.semaphore = None
 
-    async def _create_session_with_proxy(
-        self, proxy: ProxyInfo
-    ) -> aiohttp.ClientSession:
+    async def _create_session_with_proxy(self, proxy: ProxyInfo) -> aiohttp.ClientSession:
         connector = aiohttp.TCPConnector(ssl=False)
 
         if proxy.protocol.lower() == "socks5":
@@ -89,9 +87,7 @@ class ProxyDetector:
 
         return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout))
 
-    async def check_proxy_basic(
-        self, proxy: ProxyInfo, test_url: str = "http://www.google.com"
-    ) -> Tuple[bool, float]:
+    async def check_proxy_basic(self, proxy: ProxyInfo, test_url: str = "http://www.google.com") -> Tuple[bool, float]:
         start_time = time.time()
 
         try:
@@ -104,9 +100,7 @@ class ProxyDetector:
                 finally:
                     await session.close()
             else:
-                async with aiohttp.ClientSession(
-                    timeout=aiohttp.ClientTimeout(total=self.timeout)
-                ) as session:
+                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout)) as session:
                     async with session.get(test_url, proxy=proxy.to_url()) as response:
                         latency = (time.time() - start_time) * 1000
                         return response.status == 200, latency
@@ -141,12 +135,8 @@ class ProxyDetector:
                 finally:
                     await session.close()
             else:
-                async with aiohttp.ClientSession(
-                    timeout=aiohttp.ClientTimeout(total=self.timeout)
-                ) as session:
-                    async with session.get(
-                        self.IP_CHECK_URLS[0], proxy=proxy.to_url()
-                    ) as response:
+                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout)) as session:
+                    async with session.get(self.IP_CHECK_URLS[0], proxy=proxy.to_url()) as response:
                         if response.status == 200:
                             data = await response.json()
                             result["exit_ip"] = data.get("query")
@@ -186,21 +176,15 @@ class ProxyDetector:
 
                             forwarded_for = headers.get("X-Forwarded-For", "")
 
-                            if local_ip not in forwarded_for and local_ip not in str(
-                                headers
-                            ):
+                            if local_ip not in forwarded_for and local_ip not in str(headers):
                                 is_anonymous = True
                                 if not has_proxy_headers:
                                     is_high_anonymous = True
                 finally:
                     await session.close()
             else:
-                async with aiohttp.ClientSession(
-                    timeout=aiohttp.ClientTimeout(total=self.timeout)
-                ) as session:
-                    async with session.get(
-                        self.ANONYMITY_CHECK_URL, proxy=proxy.to_url()
-                    ) as response:
+                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout)) as session:
+                    async with session.get(self.ANONYMITY_CHECK_URL, proxy=proxy.to_url()) as response:
                         if response.status == 200:
                             data = await response.json()
                             headers = data.get("headers", {})
@@ -215,9 +199,7 @@ class ProxyDetector:
 
                             forwarded_for = headers.get("X-Forwarded-For", "")
 
-                            if local_ip not in forwarded_for and local_ip not in str(
-                                headers
-                            ):
+                            if local_ip not in forwarded_for and local_ip not in str(headers):
                                 is_anonymous = True
                                 if not has_proxy_headers:
                                     is_high_anonymous = True
@@ -229,9 +211,7 @@ class ProxyDetector:
 
     async def _get_local_ip(self) -> str:
         try:
-            async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=10)
-            ) as session:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
                 async with session.get("https://api.ipify.org?format=json") as response:
                     if response.status == 200:
                         data = await response.json()
@@ -275,9 +255,7 @@ class ProxyDetector:
 
             return result
 
-    async def check_proxies_batch(
-        self, proxies: List[ProxyInfo]
-    ) -> List[ProxyCheckResult]:
+    async def check_proxies_batch(self, proxies: List[ProxyInfo]) -> List[ProxyCheckResult]:
         self.semaphore = asyncio.Semaphore(self.max_concurrent)
 
         tasks = [self.check_proxy_full(proxy) for proxy in proxies]
@@ -333,9 +311,7 @@ class ProxyFileParser:
             else:
                 parts = rest.split(":")
                 if len(parts) >= 2:
-                    return ProxyInfo(
-                        host=parts[0], port=int(parts[1]), protocol=protocol
-                    )
+                    return ProxyInfo(host=parts[0], port=int(parts[1]), protocol=protocol)
 
         parts = line.split(":")
         if len(parts) >= 2:
@@ -385,16 +361,10 @@ class ProxyFileParser:
                     header = [h.lower().strip() for h in header]
 
                     host_idx = next(
-                        (
-                            i
-                            for i, h in enumerate(header)
-                            if h in ["host", "ip", "proxy"]
-                        ),
+                        (i for i, h in enumerate(header) if h in ["host", "ip", "proxy"]),
                         None,
                     )
-                    port_idx = next(
-                        (i for i, h in enumerate(header) if h == "port"), None
-                    )
+                    port_idx = next((i for i, h in enumerate(header) if h == "port"), None)
                     protocol_idx = next(
                         (i for i, h in enumerate(header) if h in ["protocol", "type"]),
                         None,
@@ -415,20 +385,10 @@ class ProxyFileParser:
                                     host=row[host_idx],
                                     port=int(row[port_idx]),
                                     protocol=(
-                                        row[protocol_idx]
-                                        if protocol_idx and len(row) > protocol_idx
-                                        else "http"
+                                        row[protocol_idx] if protocol_idx and len(row) > protocol_idx else "http"
                                     ),
-                                    username=(
-                                        row[username_idx]
-                                        if username_idx and len(row) > username_idx
-                                        else None
-                                    ),
-                                    password=(
-                                        row[password_idx]
-                                        if password_idx and len(row) > password_idx
-                                        else None
-                                    ),
+                                    username=(row[username_idx] if username_idx and len(row) > username_idx else None),
+                                    password=(row[password_idx] if password_idx and len(row) > password_idx else None),
                                 )
                                 proxies.append(proxy)
                 else:
@@ -487,9 +447,7 @@ class ProxyService:
             return []
         return self.detector.check_proxies_sync(proxies)
 
-    def check_proxies_list(
-        self, proxy_list: List[Dict[str, Any]]
-    ) -> List[ProxyCheckResult]:
+    def check_proxies_list(self, proxy_list: List[Dict[str, Any]]) -> List[ProxyCheckResult]:
         proxies = []
         for item in proxy_list:
             proxy = ProxyInfo(
@@ -530,9 +488,7 @@ class ProxyService:
         valid.sort(key=lambda x: x.latency_ms)
         return valid
 
-    def export_results(
-        self, results: List[ProxyCheckResult], output_path: str, format: str = "txt"
-    ) -> bool:
+    def export_results(self, results: List[ProxyCheckResult], output_path: str, format: str = "txt") -> bool:
         try:
             path = Path(output_path)
             path.parent.mkdir(parents=True, exist_ok=True)

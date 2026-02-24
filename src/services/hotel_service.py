@@ -94,16 +94,12 @@ class HotelService:
                 result = self.hotel_processor.validate_hotel(hotel.ip, hotel.port, sign)
 
                 if result:
-                    channels = self.hotel_processor.process_hotel_channels(
-                        result, categories, sign
-                    )
+                    channels = self.hotel_processor.process_hotel_channels(result, categories, sign)
 
                     if channels:
                         from ..processors import ChannelProcessor
 
-                        channel_processor = ChannelProcessor(
-                            self.db, self.config.scraper.__dict__
-                        )
+                        channel_processor = ChannelProcessor(self.db, self.config.scraper.__dict__)
                         inserted = channel_processor.insert_channels(channels)
                         total_channels += inserted
 

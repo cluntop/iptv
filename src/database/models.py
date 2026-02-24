@@ -19,9 +19,7 @@ class Channel:
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data["time"] = (
-                self.time.isoformat() if isinstance(self.time, datetime) else self.time
-            )
+            data["time"] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
         return data
 
 
@@ -38,9 +36,7 @@ class Hotel:
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data["time"] = (
-                self.time.isoformat() if isinstance(self.time, datetime) else self.time
-            )
+            data["time"] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
         return data
 
 
@@ -60,9 +56,7 @@ class Multicast:
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data["time"] = (
-                self.time.isoformat() if isinstance(self.time, datetime) else self.time
-            )
+            data["time"] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
         return data
 
 
@@ -93,9 +87,7 @@ class UDPxy:
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if self.time:
-            data["time"] = (
-                self.time.isoformat() if isinstance(self.time, datetime) else self.time
-            )
+            data["time"] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
         return data
 
 
@@ -138,10 +130,7 @@ class ChannelModel:
             (name, url, type, width, height, frame, speed, sign, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        params = [
-            (c.name, c.url, c.type, c.width, c.height, c.frame, c.speed, c.sign, c.time)
-            for c in channels
-        ]
+        params = [(c.name, c.url, c.type, c.width, c.height, c.frame, c.speed, c.sign, c.time) for c in channels]
         return self.db.execute_many(query, params)
 
     def update(self, channel_id: int, **kwargs) -> bool:
@@ -502,10 +491,7 @@ class UDPxyModel:
             (id, mid, mcast, city, ip, port, actv, status, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        params = [
-            (u.id, u.mid, u.mcast, u.city, u.ip, u.port, u.actv, u.status, u.time)
-            for u in udpxy_list
-        ]
+        params = [(u.id, u.mid, u.mcast, u.city, u.ip, u.port, u.actv, u.status, u.time) for u in udpxy_list]
         return self.db.execute_many(query, params)
 
     def update(self, udpxy_id: str, **kwargs) -> bool:

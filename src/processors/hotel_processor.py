@@ -33,9 +33,7 @@ class HotelProcessor:
             logger.error(f"Failed to insert hotels: {e}")
             return 0
 
-    def scan_hotel_network(
-        self, base_ip: str, port: int, thread_count: int = 6
-    ) -> List[Tuple[str, int]]:
+    def scan_hotel_network(self, base_ip: str, port: int, thread_count: int = 6) -> List[Tuple[str, int]]:
         logger.info(f"Scanning network {base_ip}*:{port}")
 
         queues = [Queue() for _ in range(thread_count)]
@@ -46,10 +44,7 @@ class HotelProcessor:
 
         active_hosts = []
         with ThreadPoolExecutor(max_workers=thread_count) as executor:
-            futures = [
-                executor.submit(self._scan_queue, queue, port, i)
-                for i, queue in enumerate(queues)
-            ]
+            futures = [executor.submit(self._scan_queue, queue, port, i) for i, queue in enumerate(queues)]
 
             for future in as_completed(futures):
                 hosts = future.result()
@@ -58,9 +53,7 @@ class HotelProcessor:
         logger.info(f"Found {len(active_hosts)} active hosts in {base_ip}*")
         return active_hosts
 
-    def _scan_queue(
-        self, queue: Queue, port: int, thread_id: int
-    ) -> List[Tuple[str, int]]:
+    def _scan_queue(self, queue: Queue, port: int, thread_id: int) -> List[Tuple[str, int]]:
         active = []
 
         while not queue.empty():
@@ -72,9 +65,7 @@ class HotelProcessor:
 
         return active
 
-    def validate_hotel(
-        self, ip: str, port: int, sign: int = 1
-    ) -> Optional[Dict[str, Any]]:
+    def validate_hotel(self, ip: str, port: int, sign: int = 1) -> Optional[Dict[str, Any]]:
         url = f"http://{ip}:{port}/iptv/live/1000.json?key=txiptv"
 
         try:
@@ -109,9 +100,7 @@ class HotelProcessor:
             logger.debug(f"Failed to validate hotel {ip}:{port}: {e}")
             return None
 
-    def process_hotel_channels(
-        self, hotel: Dict[str, Any], categories: List[Any], sign: int = 1
-    ) -> List[Channel]:
+    def process_hotel_channels(self, hotel: Dict[str, Any], categories: List[Any], sign: int = 1) -> List[Channel]:
         channels = []
         ip = hotel["ip"]
         port = hotel["port"]
@@ -163,9 +152,7 @@ class HotelProcessor:
         logger.info(f"Processed {len(channels)} channels for hotel {ip}:{port}")
         return channels
 
-    def update_hotel_status(
-        self, ip: str, status: int, count: int = 0, name: str = None
-    ) -> bool:
+    def update_hotel_status(self, ip: str, status: int, count: int = 0, name: str = None) -> bool:
         try:
             updates = {"status": status, "time": datetime.now()}
             if count > 0:

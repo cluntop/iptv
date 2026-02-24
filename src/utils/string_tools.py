@@ -54,9 +54,7 @@ class StringTools:
         return name.strip()
 
     @staticmethod
-    def match_category(
-        channel_name: str, category_list: List[Tuple]
-    ) -> Optional[Tuple[str, str]]:
+    def match_category(channel_name: str, category_list: List[Tuple]) -> Optional[Tuple[str, str]]:
         for category_info in category_list:
             category_psw = category_info[0]
             category_name = category_info[1]

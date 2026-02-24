@@ -39,17 +39,13 @@ class BaseScraper(ABC):
         if self.executor:
             self.executor.shutdown(wait=True)
 
-    async def fetch_url(
-        self, url: str, method: str = "GET", **kwargs
-    ) -> Optional[aiohttp.ClientResponse]:
+    async def fetch_url(self, url: str, method: str = "GET", **kwargs) -> Optional[aiohttp.ClientResponse]:
         for attempt in range(self.max_retries):
             try:
                 async with self.session.request(method, url, **kwargs) as response:
                     if response.status == 200:
                         return response
-                    logger.warning(
-                        f"Request to {url} returned status {response.status}"
-                    )
+                    logger.warning(f"Request to {url} returned status {response.status}")
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 logger.debug(f"Attempt {attempt + 1} failed for {url}: {e}")
                 if attempt < self.max_retries - 1:
@@ -84,9 +80,7 @@ class BaseScraper(ABC):
                 logger.error(f"Failed to read binary from {url}: {e}")
         return None
 
-    async def fetch_multiple(
-        self, urls: List[str], handler: Callable[[str, Any], None] = None
-    ) -> List[Any]:
+    async def fetch_multiple(self, urls: List[str], handler: Callable[[str, Any], None] = None) -> List[Any]:
         semaphore = asyncio.Semaphore(self.concurrency_limit)
         results = []
 

@@ -77,9 +77,7 @@ class IPTVScraper(BaseScraper):
 
         return None
 
-    async def validate_channels(
-        self, channels: List[Tuple[str, str]]
-    ) -> List[Dict[str, Any]]:
+    async def validate_channels(self, channels: List[Tuple[str, str]]) -> List[Dict[str, Any]]:
         valid_channels = []
         semaphore = asyncio.Semaphore(self.concurrency_limit)
 
@@ -157,9 +155,7 @@ class IPTVScraper(BaseScraper):
         except Exception as e:
             logger.error(f"Failed to save M3U file: {e}")
 
-    def convert_to_channels(
-        self, channels: List[Dict[str, Any]], categories: List[Category]
-    ) -> List[Channel]:
+    def convert_to_channels(self, channels: List[Dict[str, Any]], categories: List[Category]) -> List[Channel]:
         result = []
 
         for channel_data in channels:
