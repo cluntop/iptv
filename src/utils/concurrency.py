@@ -1,9 +1,10 @@
 import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from functools import partial
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Awaitable
 from dataclasses import dataclass, field
+from functools import partial
+from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+
 import aiohttp
 
 from .logger import get_logger
@@ -311,12 +312,13 @@ class TaskQueue:
 def get_concurrency_config() -> ConcurrencyConfig:
     try:
         from ..config import get_config
+
         config = get_config()
         return ConcurrencyConfig(
-            max_workers=config.scraper.concurrency_limit // 10 if hasattr(config, 'scraper') else 32,
-            async_semaphore_limit=config.scraper.concurrency_limit if hasattr(config, 'scraper') else 800,
-            batch_size=getattr(config, 'batch_size', 50),
-            timeout=config.scraper.timeout if hasattr(config, 'scraper') else 30,
+            max_workers=config.scraper.concurrency_limit // 10 if hasattr(config, "scraper") else 32,
+            async_semaphore_limit=config.scraper.concurrency_limit if hasattr(config, "scraper") else 800,
+            batch_size=getattr(config, "batch_size", 50),
+            timeout=config.scraper.timeout if hasattr(config, "scraper") else 30,
         )
     except Exception:
         return ConcurrencyConfig()
