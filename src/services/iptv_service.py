@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 from ..config import get_config
-from ..database import ChannelModel
+from ..database import Channel, ChannelModel, CategoryModel
 from ..processors import ChannelProcessor
 from ..scrapers import IPTVScraper
 from ..utils import FileTools, get_logger

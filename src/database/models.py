@@ -97,7 +97,7 @@ class ChannelModel:
 
     def insert(self, channel: Channel) -> int:
         query = """
-            INSERT OR IGNORE INTO iptv_channels 
+            INSERT OR IGNORE INTO iptv_channels
             (name, url, type, width, height, frame, speed, sign, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
@@ -118,7 +118,7 @@ class ChannelModel:
                 fetch=False,
             )
             return self.db.execute_query("SELECT last_insert_rowid()")[0][0]
-        except Exception as e:
+        except Exception:
             return 0
 
     def insert_many(self, channels: List[Channel]) -> int:
@@ -126,7 +126,7 @@ class ChannelModel:
             return 0
 
         query = """
-            INSERT OR IGNORE INTO iptv_channels 
+            INSERT OR IGNORE INTO iptv_channels
             (name, url, type, width, height, frame, speed, sign, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
@@ -144,7 +144,7 @@ class ChannelModel:
         try:
             self.db.execute_query(query, tuple(params), fetch=False)
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def update_many(self, updates: List[Dict[str, Any]]) -> int:
@@ -152,7 +152,7 @@ class ChannelModel:
             return 0
 
         query = """
-            UPDATE iptv_channels 
+            UPDATE iptv_channels
             SET speed = ?, width = ?, height = ?, frame = ?, time = ?
             WHERE id = ?
         """
@@ -243,7 +243,7 @@ class HotelModel:
 
     def insert(self, hotel: Hotel) -> int:
         query = """
-            INSERT OR IGNORE INTO iptv_hotels 
+            INSERT OR IGNORE INTO iptv_hotels
             (ip, port, name, count, status, time)
             VALUES (?, ?, ?, ?, ?, ?)
         """
@@ -269,7 +269,7 @@ class HotelModel:
             return 0
 
         query = """
-            INSERT OR IGNORE INTO iptv_hotels 
+            INSERT OR IGNORE INTO iptv_hotels
             (ip, port, name, count, status, time)
             VALUES (?, ?, ?, ?, ?, ?)
         """
@@ -338,7 +338,7 @@ class MulticastModel:
 
     def insert(self, multicast: Multicast) -> int:
         query = """
-            INSERT INTO iptv_multicast 
+            INSERT INTO iptv_multicast
             (country, province, isp, path, city, udpxy, lines, status, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
@@ -458,7 +458,7 @@ class UDPxyModel:
 
     def insert(self, udpxy: UDPxy) -> bool:
         query = """
-            INSERT OR IGNORE INTO iptv_udpxy 
+            INSERT OR IGNORE INTO iptv_udpxy
             (id, mid, mcast, city, ip, port, actv, status, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
@@ -487,7 +487,7 @@ class UDPxyModel:
             return 0
 
         query = """
-            INSERT OR IGNORE INTO iptv_udpxy 
+            INSERT OR IGNORE INTO iptv_udpxy
             (id, mid, mcast, city, ip, port, actv, status, time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """

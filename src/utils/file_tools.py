@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+from typing import Optional
 
 from ..config.constants import LOGO_BASE_URL
 from . import get_logger
