@@ -2,8 +2,7 @@ import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from functools import partial
-from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+from typing import Awaitable, Callable, List, Optional, TypeVar
 
 import aiohttp
 
