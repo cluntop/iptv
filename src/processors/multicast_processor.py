@@ -4,6 +4,8 @@ from datetime import datetime
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
 
+from bs4 import BeautifulSoup
+
 from ..config import DEFAULT_BATCH_SIZE
 from ..database import (
     Channel,
@@ -68,8 +70,6 @@ class MulticastProcessor:
             return None
 
         try:
-            from bs4 import BeautifulSoup
-
             soup = BeautifulSoup(response.text, "html.parser")
             table = soup.find("table", attrs={"cellspacing": "0"})
 

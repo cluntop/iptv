@@ -2,18 +2,18 @@ from .hotel_service import HotelService
 from .iptv_service import IPTVService
 from .multicast_service import MulticastService
 from .proxy_detector import (
-    ProxyInfo,
     ProxyCheckResult,
     ProxyDetector,
     ProxyFileParser,
+    ProxyInfo,
     ProxyService,
 )
 from .proxy_player_tester import (
-    ProxyPlayResult,
     InternalSource,
-    ProxyPlayerTester,
     InternalSourceTester,
+    ProxyPlayResult,
     ProxyPlayService,
+    ProxyPlayerTester,
 )
 
 __all__ = [
