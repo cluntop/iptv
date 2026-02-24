@@ -1,5 +1,6 @@
 import re
-from typing import List, Optional, Tuple
+from functools import lru_cache
+from typing import Dict, List, Optional, Set, Tuple
 
 from ..utils import get_logger
 
@@ -7,8 +8,8 @@ logger = get_logger("string_tools")
 
 
 class StringTools:
-    TYPE_A_LIST = ("CCTV1", "CCTV4", "CCTV5", "CCTV8", "CGTN")
-    TYPE_B_LIST = (
+    TYPE_A_LIST: Tuple[str, ...] = ("CCTV1", "CCTV4", "CCTV5", "CCTV8", "CGTN")
+    TYPE_B_LIST: Tuple[str, ...] = (
         "CCTV10",
         "CCTV11",
         "CCTV12",
@@ -29,7 +30,32 @@ class StringTools:
         "CGTN记录",
     )
 
+    TYPE_A_SET: Set[str] = set(TYPE_A_LIST)
+    TYPE_B_SET: Set[str] = set(TYPE_B_LIST)
+
+    _category_index: Dict[str, Tuple[str, str]] = {}
+    _index_built: bool = False
+
+    @classmethod
+    def build_category_index(cls, category_list: List[Tuple]) -> None:
+        if cls._index_built:
+            return
+
+        for category_info in category_list:
+            category_psw = category_info[0]
+            category_name = category_info[1]
+            category_type = category_info[2]
+
+            name_values = category_psw.split(",")
+            for name_value in name_values:
+                name_value = name_value.strip()
+                if name_value:
+                    cls._category_index[name_value] = (category_name, category_type)
+
+        cls._index_built = True
+
     @staticmethod
+    @lru_cache(maxsize=1024)
     def clean_channel_name(name: str) -> str:
         name = name.upper().replace(" ", "")
 
@@ -43,6 +69,7 @@ class StringTools:
         return name
 
     @staticmethod
+    @lru_cache(maxsize=1024)
     def normalize_channel_name(name: str) -> str:
         name = name[: name.index("[")] if "[" in name else name
         name = name.replace("HD", "")
@@ -53,24 +80,18 @@ class StringTools:
         name = name.replace("#EXTINF-1", "")
         return name.strip()
 
-    @staticmethod
-    def match_category(channel_name: str, category_list: List[Tuple]) -> Optional[Tuple[str, str]]:
-        for category_info in category_list:
-            category_psw = category_info[0]
-            category_name = category_info[1]
-            category_type = category_info[2]
+    @classmethod
+    def match_category(cls, channel_name: str, category_list: List[Tuple]) -> Optional[Tuple[str, str]]:
+        if not cls._index_built:
+            cls.build_category_index(category_list)
 
-            name_values = category_psw.split(",")
-
-            for name_value in name_values:
-                if category_name in StringTools.TYPE_A_LIST:
-                    if name_value in channel_name and not any(
-                        type_b in channel_name for type_b in StringTools.TYPE_B_LIST
-                    ):
+        for keyword, (category_name, category_type) in cls._category_index.items():
+            if keyword in channel_name:
+                if category_name in cls.TYPE_A_SET:
+                    if not any(type_b in channel_name for type_b in cls.TYPE_B_LIST):
                         return (category_name, category_type)
                 else:
-                    if name_value in channel_name:
-                        return (category_name, category_type)
+                    return (category_name, category_type)
 
         return None
 

@@ -119,7 +119,7 @@ jobs:
         IPTV_DB_PATH: data/iptv.db
         LOG_LEVEL: INFO
       run: |
-        python main_new.py
+        python main.py
 
     - name: Upload database
       uses: actions/upload-artifact@v6

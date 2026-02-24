@@ -42,6 +42,7 @@ class SQLiteConnectionPool:
                 conn.execute("PRAGMA cache_size=-64000")
                 conn.execute("PRAGMA temp_store=MEMORY")
                 conn.execute("PRAGMA mmap_size=268435456")
+                conn.execute("PRAGMA busy_timeout=30000")
 
             with self._lock:
                 self._created_connections += 1
@@ -65,6 +66,34 @@ class SQLiteConnectionPool:
                     raise sqlite3.Error("Failed to get database connection")
 
             yield conn
+        finally:
+            if conn:
+                try:
+                    self._pool.put(conn, timeout=5.0)
+                except Exception:
+                    conn.close()
+
+    @contextmanager
+    def transaction(self):
+        conn = None
+        try:
+            try:
+                conn = self._pool.get(timeout=10.0)
+            except Empty:
+                logger.warning("Connection pool exhausted, creating new connection")
+                conn = self._create_connection()
+                if conn is None:
+                    raise sqlite3.Error("Failed to get database connection")
+
+            yield conn
+            conn.commit()
+        except Exception as e:
+            if conn:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+            raise
         finally:
             if conn:
                 try:
@@ -294,14 +323,45 @@ class SQLiteManager:
                 raise
 
     def execute_many(self, query: str, params_list: List[Tuple]) -> int:
-        with self.pool.get_connection() as conn:
+        if not params_list:
+            return 0
+
+        with self.pool.transaction() as conn:
             cursor = conn.cursor()
             try:
                 cursor.executemany(query, params_list)
-                conn.commit()
                 return cursor.rowcount
             except sqlite3.Error as e:
                 logger.error(f"Batch execution failed: {query}, error: {e}")
+                raise
+
+    def execute_many_batch(self, query: str, params_list: List[Tuple], batch_size: int = 1000) -> int:
+        if not params_list:
+            return 0
+
+        total_rows = 0
+        for i in range(0, len(params_list), batch_size):
+            batch = params_list[i : i + batch_size]
+            with self.pool.transaction() as conn:
+                cursor = conn.cursor()
+                try:
+                    cursor.executemany(query, batch)
+                    total_rows += cursor.rowcount
+                except sqlite3.Error as e:
+                    logger.error(f"Batch execution failed at batch {i // batch_size}: {e}")
+                    raise
+
+        return total_rows
+
+    def execute_transaction(self, queries: List[Tuple[str, Tuple]]) -> bool:
+        with self.pool.transaction() as conn:
+            cursor = conn.cursor()
+            try:
+                for query, params in queries:
+                    cursor.execute(query, params)
+                return True
+            except sqlite3.Error as e:
+                logger.error(f"Transaction execution failed: {e}")
                 raise
 
     def close(self):

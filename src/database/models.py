@@ -1,5 +1,6 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from functools import lru_cache
 from typing import Any, Dict, List, Optional
 
 from ..utils import get_logger
@@ -93,6 +94,50 @@ class UDPxy:
         if self.time:
             data["time"] = self.time.isoformat() if isinstance(self.time, datetime) else self.time
         return data
+
+
+class SimpleCache:
+    def __init__(self, max_size: int = 1000, ttl_seconds: int = 300):
+        self._cache: Dict[str, Any] = {}
+        self._timestamps: Dict[str, datetime] = {}
+        self._max_size = max_size
+        self._ttl_seconds = ttl_seconds
+
+    def get(self, key: str) -> Optional[Any]:
+        if key not in self._cache:
+            return None
+
+        timestamp = self._timestamps.get(key)
+        if timestamp:
+            elapsed = (datetime.now() - timestamp).total_seconds()
+            if elapsed > self._ttl_seconds:
+                del self._cache[key]
+                del self._timestamps[key]
+                return None
+
+        return self._cache[key]
+
+    def set(self, key: str, value: Any) -> None:
+        if len(self._cache) >= self._max_size:
+            oldest_key = min(self._timestamps, key=self._timestamps.get)
+            del self._cache[oldest_key]
+            del self._timestamps[oldest_key]
+
+        self._cache[key] = value
+        self._timestamps[key] = datetime.now()
+
+    def clear(self) -> None:
+        self._cache.clear()
+        self._timestamps.clear()
+
+    def invalidate(self, pattern: str = None) -> None:
+        if pattern is None:
+            self.clear()
+        else:
+            keys_to_delete = [k for k in self._cache if pattern in k]
+            for key in keys_to_delete:
+                del self._cache[key]
+                del self._timestamps[key]
 
 
 class ChannelModel:
@@ -416,6 +461,8 @@ class MulticastModel:
 
 
 class CategoryModel:
+    _cache: SimpleCache = SimpleCache(max_size=100, ttl_seconds=300)
+
     def __init__(self, db_manager):
         self.db = db_manager
 
@@ -425,28 +472,51 @@ class CategoryModel:
             VALUES (?, ?, ?, ?)
         """
         try:
-            return self.db.execute_insert(
+            result = self.db.execute_insert(
                 query,
                 (category.name, category.psw, category.type, category.enable),
             )
+            self._cache.invalidate("categories")
+            return result
         except Exception as e:
             logger.error(f"Failed to insert category: {e}")
             return 0
 
     def get_enabled(self) -> List[Category]:
+        cache_key = "categories_enabled"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         query = "SELECT * FROM iptv_category WHERE enable = 1 ORDER BY id DESC"
         rows = self.db.execute_query(query)
-        return [self._row_to_category(row) for row in rows]
+        result = [self._row_to_category(row) for row in rows]
+        self._cache.set(cache_key, result)
+        return result
 
     def get_by_type(self, category_type: str) -> List[Category]:
+        cache_key = f"categories_type_{category_type}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         query = "SELECT * FROM iptv_category WHERE type = ? AND enable = 1"
         rows = self.db.execute_query(query, (category_type,))
-        return [self._row_to_category(row) for row in rows]
+        result = [self._row_to_category(row) for row in rows]
+        self._cache.set(cache_key, result)
+        return result
 
     def get_all(self) -> List[Category]:
+        cache_key = "categories_all"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         query = "SELECT * FROM iptv_category ORDER BY id DESC"
         rows = self.db.execute_query(query)
-        return [self._row_to_category(row) for row in rows]
+        result = [self._row_to_category(row) for row in rows]
+        self._cache.set(cache_key, result)
+        return result
 
     def _row_to_category(self, row) -> Category:
         return Category(

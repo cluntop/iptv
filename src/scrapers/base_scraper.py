@@ -1,6 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
 from queue import Queue
 from typing import Any, Callable, Dict, List, Optional
 
@@ -18,17 +19,28 @@ class BaseScraper(ABC):
         self.max_retries = self.config.get("max_retries", 3)
         self.retry_delay = self.config.get("retry_delay", 1.0)
         self.concurrency_limit = self.config.get("concurrency_limit", 100)
+        self.thread_pool_size = self.config.get("thread_pool_size", min(32, (self.concurrency_limit // 10) + 4))
 
         self.session = None
         self.executor = None
         self.results_queue = Queue()
+        self._semaphore: Optional[asyncio.Semaphore] = None
 
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=self.timeout),
-            connector=aiohttp.TCPConnector(limit=self.concurrency_limit),
+        connector = aiohttp.TCPConnector(
+            limit=self.concurrency_limit,
+            limit_per_host=min(100, self.concurrency_limit // 2),
+            ttl_dns_cache=300,
+            use_dns_cache=True,
+            keepalive_timeout=30,
+            enable_cleanup_closed=True,
         )
-        self.executor = ThreadPoolExecutor(max_workers=self.concurrency_limit)
+        self.session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=self.timeout, connect=10, sock_read=self.timeout),
+            connector=connector,
+        )
+        self.executor = ThreadPoolExecutor(max_workers=self.thread_pool_size)
+        self._semaphore = asyncio.Semaphore(self.concurrency_limit)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -79,20 +91,25 @@ class BaseScraper(ABC):
         return None
 
     async def fetch_multiple(self, urls: List[str], handler: Callable[[str, Any], None] = None) -> List[Any]:
-        semaphore = asyncio.Semaphore(self.concurrency_limit)
-        results = []
+        if not urls:
+            return []
 
-        async def fetch_with_semaphore(url: str):
-            async with semaphore:
-                return await self.fetch_text(url)
+        results = [None] * len(urls)
+        pending = {}
 
-        tasks = [fetch_with_semaphore(url) for url in urls]
+        async def fetch_with_semaphore(idx: int, url: str):
+            async with self._semaphore:
+                return idx, await self.fetch_text(url)
+
+        tasks = [asyncio.create_task(fetch_with_semaphore(i, url)) for i, url in enumerate(urls)]
+        for task in tasks:
+            pending[task] = task
 
         for future in asyncio.as_completed(tasks):
-            result = await future
+            idx, result = await future
+            results[idx] = result
             if result and handler:
-                handler(urls[tasks.index(future)], result)
-            results.append(result)
+                handler(urls[idx], result)
 
         return results
 

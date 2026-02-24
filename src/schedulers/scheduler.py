@@ -1,5 +1,6 @@
 import asyncio
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -34,13 +35,20 @@ class Task:
 
 
 class TaskScheduler:
-    def __init__(self, db_manager=None):
+    def __init__(self, db_manager=None, max_workers: int = 4):
         self.db = db_manager
         self.tasks: Dict[str, Task] = {}
         self.running = False
         self._thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
+        self._executor: Optional[ThreadPoolExecutor] = None
+        self._max_workers = max_workers
+
+    def _get_executor(self) -> ThreadPoolExecutor:
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=self._max_workers)
+        return self._executor
 
     def add_task(
         self,
@@ -170,7 +178,8 @@ class TaskScheduler:
 
                     if task.next_run and task.next_run <= now:
                         if task.status != TaskStatus.RUNNING:
-                            threading.Thread(target=self._execute_task, args=(task,), daemon=True).start()
+                            executor = self._get_executor()
+                            executor.submit(self._execute_task, task)
 
             self._stop_event.wait(60)
 
@@ -197,6 +206,9 @@ class TaskScheduler:
         if self._thread:
             self._thread.join(timeout=5)
 
+        if self._executor:
+            self._executor.shutdown(wait=False)
+
         logger.info("Scheduler stopped")
 
     def run_task_now(self, name: str) -> bool:
@@ -204,7 +216,8 @@ class TaskScheduler:
             if name in self.tasks:
                 task = self.tasks[name]
                 if task.status != TaskStatus.RUNNING:
-                    threading.Thread(target=self._execute_task, args=(task,), daemon=True).start()
+                    executor = self._get_executor()
+                    executor.submit(self._execute_task, task)
                     return True
         return False
 

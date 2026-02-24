@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse
 
@@ -13,6 +14,7 @@ class IPTVScraper(BaseScraper):
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
         self.scan_urls = IPTV_SCAN_URLS
+        self._validate_semaphore = None
 
     async def scan_network(self, base_urls: List[str] = None) -> List[Tuple[str, str]]:
         base_urls = base_urls or self.scan_urls
@@ -32,21 +34,44 @@ class IPTVScraper(BaseScraper):
 
         results = []
         async with self:
-            for ip_url in scan_ips:
-                api_url = f"{ip_url}/iptv/live/1000.json?key=txiptv"
-                data = await self.fetch_json(api_url)
+            batch_size = min(100, self.concurrency_limit)
+            for i in range(0, len(scan_ips), batch_size):
+                batch = scan_ips[i : i + batch_size]
+                batch_results = await self._scan_batch(batch)
+                results.extend(batch_results)
 
-                if data and isinstance(data, dict) and "data" in data:
-                    for item in data["data"]:
-                        name = item.get("name", "Unknown")
-                        url = urljoin(ip_url, item.get("url", ""))
-                        results.append((name, url))
-
-                        if len(results) % 100 == 0:
-                            self.log_progress(len(results), len(scan_ips), "IPTV scan")
+                if len(results) % 100 == 0:
+                    self.log_progress(len(results), len(scan_ips), "IPTV scan")
 
         logger.info(f"Found {len(results)} channels from network scan")
         return results
+
+    async def _scan_batch(self, urls: List[str]) -> List[Tuple[str, str]]:
+        results = []
+        tasks = []
+
+        for ip_url in urls:
+            api_url = f"{ip_url}/iptv/live/1000.json?key=txiptv"
+            tasks.append(self._fetch_and_parse_channels(api_url, ip_url))
+
+        channel_lists = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for channel_list in channel_lists:
+            if isinstance(channel_list, list):
+                results.extend(channel_list)
+
+        return results
+
+    async def _fetch_and_parse_channels(self, api_url: str, ip_url: str) -> List[Tuple[str, str]]:
+        data = await self.fetch_json(api_url)
+        if data and isinstance(data, dict) and "data" in data:
+            results = []
+            for item in data["data"]:
+                name = item.get("name", "Unknown")
+                url = urljoin(ip_url, item.get("url", ""))
+                results.append((name, url))
+            return results
+        return []
 
     async def check_stream(self, name: str, url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -77,28 +102,31 @@ class IPTVScraper(BaseScraper):
         return None
 
     async def validate_channels(self, channels: List[Tuple[str, str]]) -> List[Dict[str, Any]]:
-        import asyncio
+        if not channels:
+            return []
 
         valid_channels = []
-        semaphore = asyncio.Semaphore(self.concurrency_limit)
+        total = len(channels)
+        progress_counter = [0]
+        progress_lock = asyncio.Lock()
 
-        async def check_with_semaphore(name: str, url: str):
-            async with semaphore:
-                return await self.check_stream(name, url)
+        async def check_with_semaphore(idx: int, name: str, url: str):
+            async with self._semaphore:
+                result = await self.check_stream(name, url)
 
-        tasks = [check_with_semaphore(name, url) for name, url in channels]
+                async with progress_lock:
+                    progress_counter[0] += 1
+                    if progress_counter[0] % 50 == 0 or progress_counter[0] == total:
+                        self.log_progress(progress_counter[0], total, "Channel validation")
 
-        completed = 0
-        total = len(tasks)
+                return idx, result
+
+        tasks = [asyncio.create_task(check_with_semaphore(i, name, url)) for i, (name, url) in enumerate(channels)]
 
         for future in asyncio.as_completed(tasks):
-            result = await future
+            idx, result = await future
             if result:
                 valid_channels.append(result)
-
-            completed += 1
-            if completed % 50 == 0 or completed == total:
-                self.log_progress(completed, total, "Channel validation")
 
         logger.info(f"Validated {len(valid_channels)}/{total} channels")
         return valid_channels

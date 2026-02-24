@@ -1,3 +1,5 @@
+import asyncio
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from queue import Queue
@@ -15,9 +17,16 @@ class ChannelProcessor:
         self.db = db_manager
         self.config = config or {}
         self.batch_size = self.config.get("batch_size", DEFAULT_BATCH_SIZE)
+        self.max_workers = self.config.get("max_workers", min(8, (os.cpu_count() or 4) * 2))
         self.video_tools = VideoTools()
         self.channel_model = ChannelModel(db_manager)
         self.category_model = CategoryModel(db_manager)
+        self._executor: ThreadPoolExecutor = None
+
+    def _get_executor(self) -> ThreadPoolExecutor:
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=self.max_workers)
+        return self._executor
 
     def insert_channels(self, channels: List[Channel]) -> int:
         if not channels:
@@ -31,24 +40,83 @@ class ChannelProcessor:
             logger.error(f"Failed to insert channels: {e}")
             return 0
 
-    def process_channel_speeds(self, channel_ids: List[int], thread_count: int = 5) -> int:
+    def process_channel_speeds(self, channel_ids: List[int], thread_count: int = None) -> int:
         if not channel_ids:
             return 0
 
+        if thread_count is None:
+            thread_count = self.max_workers
+
         logger.info(f"Processing speeds for {len(channel_ids)} channels with {thread_count} threads")
 
-        queues = [Queue() for _ in range(thread_count)]
-        for i, channel_id in enumerate(channel_ids):
-            queues[i % thread_count].put(channel_id)
+        chunk_size = (len(channel_ids) + thread_count - 1) // thread_count
+        chunks = [channel_ids[i : i + chunk_size] for i in range(0, len(channel_ids), chunk_size)]
 
         processed = 0
-        with ThreadPoolExecutor(max_workers=thread_count) as executor:
-            futures = [executor.submit(self._process_speed_queue, queue, i) for i, queue in enumerate(queues)]
+        executor = self._get_executor()
+        futures = [executor.submit(self._process_speed_chunk, chunk, i) for i, chunk in enumerate(chunks)]
 
-            for future in as_completed(futures):
+        for future in as_completed(futures):
+            try:
                 processed += future.result()
+            except Exception as e:
+                logger.error(f"Error in speed processing: {e}")
 
         logger.info(f"Processed speeds for {processed} channels")
+        return processed
+
+    def _process_speed_chunk(self, channel_ids: List[int], thread_id: int) -> int:
+        processed = 0
+        updates = []
+
+        for channel_id in channel_ids:
+            channel = self.channel_model.get_by_id(channel_id)
+
+            if not channel:
+                continue
+
+            try:
+                video_info = self.video_tools.get_video_info(channel.url)
+                if not video_info:
+                    continue
+
+                width, height, frame = video_info
+
+                if channel.speed == 0.00:
+                    speed = self.video_tools.get_stream_speed(channel.url)
+                    logger.info(
+                        f"Thread {thread_id}: Channel {channel_id}:{channel.name} - "
+                        f"Speed: {speed} Mbps, Resolution: {width}*{height}, FPS: {frame}"
+                    )
+                else:
+                    speed = channel.speed
+                    logger.debug(
+                        f"Thread {thread_id}: Channel {channel_id}:{channel.name} - " f"Existing speed: {speed} Mbps"
+                    )
+
+                updates.append(
+                    {
+                        "id": channel_id,
+                        "speed": speed,
+                        "width": width,
+                        "height": height,
+                        "frame": frame,
+                        "time": datetime.now(),
+                    }
+                )
+
+                processed += 1
+
+                if len(updates) >= self.batch_size:
+                    self.channel_model.update_many(updates)
+                    updates = []
+
+            except Exception as e:
+                logger.error(f"Error processing channel {channel_id}: {e}")
+
+        if updates:
+            self.channel_model.update_many(updates)
+
         return processed
 
     def _process_speed_queue(self, queue: Queue, thread_id: int) -> int:
@@ -135,13 +203,13 @@ class ChannelProcessor:
             logger.warning("No categories found")
             return 0
 
-        content = ""
+        content_lines = []
         total_channels = 0
 
         for category in categories:
             category_type = category.type
 
-            content += f"{category_type},#genre#\n"
+            content_lines.append(f"{category_type},#genre#\n")
 
             channels = self.channel_model.get_by_type(category_type)
 
@@ -151,18 +219,18 @@ class ChannelProcessor:
                     continue
 
                 if channel.speed > 0 and channel.width >= 1280:
-                    content += f"{channel.name},{channel.url}\n"
+                    content_lines.append(f"{channel.name},{channel.url}\n")
                     processed.add((channel.name, channel.url))
                     total_channels += 1
 
             logger.info(f"Generated {len(processed)} channels for {category_type}")
 
         update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        content += f"更新时间,#genre#\n{update_time},https://taoiptv.com/time.mp4\n"
+        content_lines.append(f"更新时间,#genre#\n{update_time},https://taoiptv.com/time.mp4\n")
 
         try:
             with open(output_file, "w", encoding="utf-8") as f:
-                f.write(content)
+                f.writelines(content_lines)
 
             logger.info(f"Generated IPTV file: {output_file} with {total_channels} channels")
             return total_channels

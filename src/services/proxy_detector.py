@@ -67,7 +67,29 @@ class ProxyDetector:
     def __init__(self, timeout: int = 15, max_concurrent: int = 50):
         self.timeout = timeout
         self.max_concurrent = max_concurrent
-        self.semaphore = None
+        self._semaphore: Optional[asyncio.Semaphore] = None
+        self._session: Optional[aiohttp.ClientSession] = None
+        self._local_ip_cache: Optional[str] = None
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            connector = aiohttp.TCPConnector(
+                limit=self.max_concurrent * 2,
+                limit_per_host=self.max_concurrent,
+                ttl_dns_cache=300,
+                use_dns_cache=True,
+                keepalive_timeout=30,
+            )
+            self._session = aiohttp.ClientSession(
+                connector=connector,
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
+            )
+        return self._session
+
+    async def close_session(self):
+        if self._session and not self._session.closed:
+            await self._session.close()
+            self._session = None
 
     async def _create_session_with_proxy(self, proxy: ProxyInfo) -> aiohttp.ClientSession:
         connector = aiohttp.TCPConnector(ssl=False)
@@ -209,22 +231,27 @@ class ProxyDetector:
         return is_anonymous, is_high_anonymous
 
     async def _get_local_ip(self) -> str:
+        if self._local_ip_cache is not None:
+            return self._local_ip_cache
+
         try:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-                async with session.get("https://api.ipify.org?format=json") as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        return data.get("ip", "")
+            session = await self._get_session()
+            async with session.get("https://api.ipify.org?format=json") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    self._local_ip_cache = data.get("ip", "")
+                    return self._local_ip_cache
         except Exception:
             pass
 
         try:
-            return socket.gethostbyname(socket.gethostname())
+            self._local_ip_cache = socket.gethostbyname(socket.gethostname())
+            return self._local_ip_cache
         except Exception:
             return ""
 
     async def check_proxy_full(self, proxy: ProxyInfo) -> ProxyCheckResult:
-        async with self.semaphore:
+        async with self._semaphore:
             result = ProxyCheckResult(proxy=proxy, check_time=datetime.now())
 
             is_valid, latency = await self.check_proxy_basic(proxy)
@@ -256,26 +283,29 @@ class ProxyDetector:
             return result
 
     async def check_proxies_batch(self, proxies: List[ProxyInfo]) -> List[ProxyCheckResult]:
-        self.semaphore = asyncio.Semaphore(self.max_concurrent)
+        self._semaphore = asyncio.Semaphore(self.max_concurrent)
 
-        tasks = [self.check_proxy_full(proxy) for proxy in proxies]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        try:
+            tasks = [self.check_proxy_full(proxy) for proxy in proxies]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        valid_results = []
-        for i, result in enumerate(results):
-            if isinstance(result, Exception):
-                valid_results.append(
-                    ProxyCheckResult(
-                        proxy=proxies[i],
-                        is_valid=False,
-                        error_message=str(result),
-                        check_time=datetime.now(),
+            valid_results = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    valid_results.append(
+                        ProxyCheckResult(
+                            proxy=proxies[i],
+                            is_valid=False,
+                            error_message=str(result),
+                            check_time=datetime.now(),
+                        )
                     )
-                )
-            else:
-                valid_results.append(result)
+                else:
+                    valid_results.append(result)
 
-        return valid_results
+            return valid_results
+        finally:
+            await self.close_session()
 
     def check_proxies_sync(self, proxies: List[ProxyInfo]) -> List[ProxyCheckResult]:
         return asyncio.run(self.check_proxies_batch(proxies))

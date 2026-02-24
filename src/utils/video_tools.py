@@ -1,7 +1,11 @@
+import asyncio
 import json
 import re
+import shutil
 import subprocess
-from typing import List
+from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
+from typing import List, Optional, Tuple
 
 from ..utils import get_logger
 
@@ -9,14 +13,27 @@ logger = get_logger("video_tools")
 
 
 class VideoTools:
+    _executor: ThreadPoolExecutor = None
+
     def __init__(self):
         self.ffprobe_available = self._check_ffprobe()
         self.ffmpeg_available = self._check_ffmpeg()
 
+    @classmethod
+    def _get_executor(cls) -> ThreadPoolExecutor:
+        if cls._executor is None:
+            cls._executor = ThreadPoolExecutor(max_workers=8)
+        return cls._executor
+
+    @lru_cache(maxsize=1)
     def _check_ffprobe(self) -> bool:
         try:
-            subprocess.run(["ffprobe", "-version"], capture_output=True, timeout=5)
-            return True
+            result = subprocess.run(
+                ["ffprobe", "-version"],
+                capture_output=True,
+                timeout=5,
+            )
+            return result.returncode == 0
         except (
             subprocess.CalledProcessError,
             FileNotFoundError,
@@ -25,10 +42,15 @@ class VideoTools:
             logger.warning("ffprobe not found, video info extraction will be limited")
             return False
 
+    @lru_cache(maxsize=1)
     def _check_ffmpeg(self) -> bool:
         try:
-            subprocess.run(["ffmpeg", "-version"], capture_output=True, timeout=5)
-            return True
+            result = subprocess.run(
+                ["ffmpeg", "-version"],
+                capture_output=True,
+                timeout=5,
+            )
+            return result.returncode == 0
         except (
             subprocess.CalledProcessError,
             FileNotFoundError,
@@ -86,16 +108,28 @@ class VideoTools:
             logger.warning(f"Unexpected error getting video info for {url}: {e}")
             return []
 
+    async def get_video_info_async(self, url: str, timeout: int = 15) -> List:
+        if not self.ffprobe_available:
+            return []
+
+        loop = asyncio.get_event_loop()
+        executor = self._get_executor()
+
+        try:
+            return await loop.run_in_executor(executor, self.get_video_info, url, timeout)
+        except Exception as e:
+            logger.debug(f"Async video info failed for {url}: {e}")
+            return []
+
     def get_stream_speed(self, url: str, duration: int = 10) -> float:
         if not self.ffmpeg_available:
             return 0.00
 
-        ffmpeg_command = f"ffmpeg -i {url} -t {duration} -f null -"
+        ffmpeg_command = ["ffmpeg", "-i", url, "-t", str(duration), "-f", "null", "-"]
 
         try:
             process = subprocess.Popen(
                 ffmpeg_command,
-                shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -119,16 +153,28 @@ class VideoTools:
             logger.warning(f"Unexpected error getting stream speed for {url}: {e}")
             return 0.00
 
+    async def get_stream_speed_async(self, url: str, duration: int = 10) -> float:
+        if not self.ffmpeg_available:
+            return 0.00
+
+        loop = asyncio.get_event_loop()
+        executor = self._get_executor()
+
+        try:
+            return await loop.run_in_executor(executor, self.get_stream_speed, url, duration)
+        except Exception as e:
+            logger.debug(f"Async stream speed failed for {url}: {e}")
+            return 0.00
+
     def validate_stream(self, url: str, timeout: int = 5) -> bool:
         if not self.ffmpeg_available:
             return False
 
-        ffmpeg_command = f"ffmpeg -i {url} -t 1 -f null -"
+        ffmpeg_command = ["ffmpeg", "-i", url, "-t", "1", "-f", "null", "-"]
 
         try:
             process = subprocess.Popen(
                 ffmpeg_command,
-                shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -137,5 +183,17 @@ class VideoTools:
 
         except subprocess.TimeoutExpired:
             return False
+        except Exception:
+            return False
+
+    async def validate_stream_async(self, url: str, timeout: int = 5) -> bool:
+        if not self.ffmpeg_available:
+            return False
+
+        loop = asyncio.get_event_loop()
+        executor = self._get_executor()
+
+        try:
+            return await loop.run_in_executor(executor, self.validate_stream, url, timeout)
         except Exception:
             return False
