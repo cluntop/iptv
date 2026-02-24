@@ -1,6 +1,5 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from functools import lru_cache
 from typing import Any, Dict, List, Optional
 
 from ..utils import get_logger

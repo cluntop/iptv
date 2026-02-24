@@ -87,7 +87,7 @@ class SQLiteConnectionPool:
 
             yield conn
             conn.commit()
-        except Exception as e:
+        except Exception:
             if conn:
                 try:
                     conn.rollback()

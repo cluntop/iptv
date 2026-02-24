@@ -1,11 +1,10 @@
 import asyncio
 import json
 import re
-import shutil
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
-from typing import List, Optional, Tuple
+from typing import List
 
 from ..utils import get_logger
 
